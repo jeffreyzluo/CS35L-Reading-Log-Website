@@ -18,14 +18,6 @@ function Profile() {
 		setIsEditingBio(true);
 	};
 
-	// --- Username Handlers ---
-	const usernameChange = (event) => {
-    setUser(event.target.value);
-  };
-  const toggleEditingUsername = () => {
-    setIsEditingUsername(!isEditingUsername);
-  };
-
 	// --- Profile Pic Handler ---
 	const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -35,6 +27,13 @@ function Profile() {
     }
   };
 
+	// --- Username Handlers ---
+	const usernameChange = (event) => {
+    setUser(event.target.value);
+  };
+  const toggleEditingUsername = () => {
+    setIsEditingUsername(!isEditingUsername);
+  };
 	let usernameSection;
   if (isEditingUsername) {
   	usernameSection = (
@@ -59,13 +58,15 @@ function Profile() {
         </div>
       );
   }
-	return (
-		<div className="profile-container">
-			<h1>My Profile</h1>
-			<p>This is your profile page.</p>
 
-			{/*Profile picture section */}
-			<div className='profile-container'> </div>
+
+	return (
+		<div className="profile-page">
+			<div className="header">
+				<h1 className="container">My Profile</h1>
+			</div>
+			<div className="profile-main">
+				{/*Profile picture section */}
 				<div className='profilePic-section'>
 					<img src={profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
 						alt="Profile"
@@ -83,39 +84,42 @@ function Profile() {
 						style={{display: "none"}}
 					/>
 				</div>
-			<div>
 
-				{/* Username section*/}
-        <div className='username-section'>
-            {usernameSection}
-        </div>
+				{/* Right-side content: username + bio */}
+				<div className="profile-content">
+					
+					{/* Username section*/}
+					<div className='username-section'>
+							{usernameSection}
+					</div>
 
-				{/* Bio Section */}
-				<div className="input-bio">
-					{isEditingBio ? (
-						<> 
-							<input 
-								type="text" 
-								value={bio} 
-								onChange={(e) => setBio(e.target.value)} 
-								placeholder="Tell us about yourself...">
-							</input>
-							<button onClick={handleSaveClick}>Save</button>
-						</>
-					) : (
-						<>
-							<p>{bio || "No bio yet."}</p>
-							<button onClick={handleUpdateClick}>Update</button>
-						</>
-					)}
+					{/* Bio Section */}
+					<div className="bio-section">
+						{isEditingBio ? (
+							<> 
+								<input 
+									className="input-bio"
+									type="text" 
+									value={bio} 
+									onChange={(e) => setBio(e.target.value)} 
+									placeholder="Tell us about yourself...">
+								</input>
+								<button className="bio-button" onClick={handleSaveClick}>Save</button>
+							</>
+						) : (
+							<>
+								<p>{bio || "No bio yet."}</p>
+								<button className="bio-button" onClick={handleUpdateClick}>Update</button>
+							</>
+						)}
+					</div>
+								
 				</div>
-							
 			</div>
 		</div>
 	);
 
 }
 
-// Helper function to implement BIO
 
 export default Profile;
