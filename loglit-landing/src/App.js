@@ -1,18 +1,20 @@
 import "./App.css";
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import Login from "./pages/Login.js";
+import Profile from "./pages/Profile.js";
 
 function Header() {
   const navigate = useNavigate();
-  const handleButtonClick = () => {
-        navigate('/login');
+  const handleButtonClick = (destination) => {
+        navigate(destination);
       };
   return (
     <header className="header">
       <div className="container">
         <h1 className="logo">LogLit</h1>
         <nav>
-          <button className="signup-button" onClick={handleButtonClick}>Login/Sign Up</button>
+          <button className="signup-button" onClick={() => handleButtonClick('/Login')}>Login/Sign Up</button>
+          <button className="profile-button" onClick={() => handleButtonClick('/Profile')}>Profile</button>        
         </nav>
       </div>
     </header>
@@ -48,6 +50,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }

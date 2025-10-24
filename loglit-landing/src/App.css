@@ -32,6 +32,16 @@ body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  margin-right: 10px;
+}
+.profile-button {
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  background-color: white;
+  color: #4a90e2;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 .signup-button:hover {
