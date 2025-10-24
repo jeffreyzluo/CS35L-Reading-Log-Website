@@ -76,3 +76,87 @@ body {
 .cta-button:hover {
   background-color: #357ab8;
 }
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 40px;
+}
+
+.profilePic-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  position: relative;
+
+}
+
+.profile-pic {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #000000;
+}
+
+.upload-button {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.85rem;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.upload-button:hover {
+  background-color: #e6e6e6;
+}
+
+.username-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.username-edit {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.username-input {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 200px;
+}
+
+.save-button,
+.edit-button {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.save-button:hover,
+.edit-button:hover {
+  background-color: #357ab8;
+}
+
+.username-display {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
