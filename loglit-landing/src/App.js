@@ -1,7 +1,7 @@
 import "./App.css";
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import Login from "./pages/Login.js";
-import Profile from "./pages/Profile.js";
+import Profile from "./pages/profile/ProfilePage.js";
 
 function Header() {
   const navigate = useNavigate();
