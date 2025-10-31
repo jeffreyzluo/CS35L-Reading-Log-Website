@@ -17,7 +17,7 @@ function Bio() {
             className="input-bio"
             type="text"
             value={bio}
-            onChange={(e) => setBio(e.target.value)}
+            onChange={(event) => setBio(event.target.value)}
             placeholder="Tell us about yourself..."
           />
           <button className="bio-button" onClick={handleSaveClick}>
