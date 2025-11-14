@@ -2,6 +2,7 @@ import "./App.css";
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import Login from "./pages/Login.js";
 import Profile from "./pages/profile/ProfilePage.js";
+import Search from "./pages/search/SearchPage.js";
 
 function Header() {
   const navigate = useNavigate();
@@ -14,7 +15,8 @@ function Header() {
         <h1 className="logo">LogLit</h1>
         <nav>
           <button className="signup-button" onClick={() => handleButtonClick('/Login')}>Login/Sign Up</button>
-          <button className="profile-button" onClick={() => handleButtonClick('/Profile')}>Profile</button>        
+          <button className="profile-button" onClick={() => handleButtonClick('/Profile')}>Profile</button>
+          <button className="search-button" onClick={() => handleButtonClick('/Search')}>Search</button>                
         </nav>
       </div>
     </header>
@@ -51,6 +53,8 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/Search" element={<Search />} />
+
     </Routes>
   );
 }
