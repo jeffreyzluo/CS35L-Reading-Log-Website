@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SearchBar from './SearchBar';
+import Post from '../profile/Post';
 
 
 function Search() {
@@ -57,8 +58,17 @@ function Search() {
                   }
                 </p>
               )}
+
               {item.description && <p>{item.description}</p>}
               {item.thumbnail && <img src={item.thumbnail} alt={item.name} />}
+              <Post 
+                title={item.name} 
+                author={
+                  Array.isArray(item.authors) 
+                    ? item.authors.join(", ") 
+                    : item.authors
+                }
+              />   {/* ← included inside each result */}
             </div>
           ))
         ) : (

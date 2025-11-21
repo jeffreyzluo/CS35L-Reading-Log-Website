@@ -1,51 +1,96 @@
 import React, { useState } from 'react';
 
-function Post() {
+function Post({title, author}) {
   // Post feature state
-  const[input, setInput] = useState('');
-  const [posts, setPosts] = useState([]);
+  const [readStatus, setReadStatus] = useState('');
+  const [review, setReview] = useState('');
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [booksAdded, setBooksAdded] = useState([]);
+
 
   // --- Post Handlers ---
-  const handleShareClick = () => {
-    if (!input.trim()) return;
+  const handleReviewClick = () => setIsReviewing(true);
 
-    const newPost = {
-      id: Date.now(),
-      text: input.trim(),
-      timestamp: new Date().toDateString(),
+  const handleShareClick = () => {
+    if (!review.trim()) return;
+
+    const newBook = {
+      title: title,
+      author: author,
+      dateAdded: new Date().toDateString(),
+      status: readStatus,
+      text: review.trim(),
+      rating: "RATING"
     };
 
-    setPosts([newPost, ...posts]);
-    setInput('');
-  };
-  const handleDeleteClick = (id) => {
-    setPosts(posts.filter((post) => post.id !== id));
+    setBooksAdded([newBook, ...booksAdded]);
+
+    // --- Reset Inputs ---
+    setReview('');
+    setReadStatus("Select status");
+    // ... TODO: Update for STAR RATING SYSTEM
+    setIsReviewing(false);
 
   };
+
+  const handleDeleteClick = (id) => {
+    setBooksAdded(booksAdded.filter((booksAdded) => booksAdded.id !== id));
+
+  };
+  
 
   return(
     <div className="post-Section">
       {/* Input Post */}
       <div className="post-Container">
-        <textarea 
-          className="post-Input" 
-          type="text" 
-          value={input} 
-          onChange={(event) => setInput(event.target.value)}
-          placeholder="Share a book!">
-        </textarea>
         
-        <button className="postButton" onClick={handleShareClick}>Share</button>
+        {/* Read Status */}
+        <select
+          value={readStatus}
+          onChange={(event) => setReadStatus(event.target.value)}
+          className="status-select">
+          <option value="">Select status</option>
+          <option value="reading">📖 Reading</option>
+          <option value="completed">✅ Completed</option>
+          <option value="wishlist">⭐ Wishlist</option>
+        </select>
+
+        {/* Post Review */}
+        {isReviewing ? (
+          <>
+          <textarea 
+            className="post-Review" 
+            type="text" 
+            value={review} 
+            onChange={(event) => setReview(event.target.value)}
+            placeholder="Share a book!">
+          </textarea>
+        
+          <button className="postButton" onClick={handleShareClick}>Share</button>
+          </>
+        ) : (
+          <>
+          <button className="post-button" onClick={handleReviewClick}>
+            Review
+          </button>
+        </>
+        )}
+
       </div>
 
       {/* Shared Posts */}
       <div>
         <ul className="sharedPost">
-          {posts.map((post) => (
+          {booksAdded.map((post) => (
             <li key={post.id}>
-              <strong className="post-text-content">{post.text}</strong>
-              <small>{post.timestamp}</small>
-              <button className="deletePost" onClick={ () => handleDeleteClick(post.id)}>Delete</button>
+              <div>{post.title}</div>
+              <div>{post.author}</div>
+              <div>{post.dateAdded}</div>
+              <div>{post.status}</div>
+              <div>{post.text}</div>
+              <button className="deletePost" onClick={() => handleDeleteClick(post.id)}>
+                Delete
+              </button>
             </li>
           ))}
         </ul>
