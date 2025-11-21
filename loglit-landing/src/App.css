@@ -24,7 +24,7 @@ body {
   font-weight: bold;
 }
 
-.signup-button {
+.signup-button, .search-button, .profile-button{
   padding: 0.5rem 1.2rem;
   font-size: 1rem;
   background-color: white;
@@ -34,17 +34,8 @@ body {
   cursor: pointer;
   margin-right: 10px;
 }
-.profile-button {
-  padding: 0.5rem 1.2rem;
-  font-size: 1rem;
-  background-color: white;
-  color: #4a90e2;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
 
-.signup-button:hover {
+.signup-button:hover, .search-button:hover, .profile-button:hover {
   background-color: #e6e6e6;
 }
 
