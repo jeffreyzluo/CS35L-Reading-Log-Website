@@ -11,25 +11,50 @@ function Post({title, author}) {
   // --- Post Handlers ---
   const handleReviewClick = () => setIsReviewing(true);
 
-  const handleShareClick = () => {
+  const handleShareClick = async () => {
     if (!review.trim()) return;
 
     const newBook = {
       title: title,
       author: author,
-      dateAdded: new Date().toDateString(),
       status: readStatus,
-      text: review.trim(),
+      review: review.trim(),
       rating: "RATING"
     };
 
-    setBooksAdded([newBook, ...booksAdded]);
+    try {
+      // Send POST request to backend
+      const response = await fetch("http://localhost:5001/api/books/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: 1,       // replace with actual logged-in user
+          title: title,
+          author: author,
+          status: readStatus,
+          review: review.trim(),
+          rating: 5        // placeholder for rating
+        })
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add book");
+      }
+      
 
-    // --- Reset Inputs ---
-    setReview('');
-    setReadStatus("Select status");
-    // ... TODO: Update for STAR RATING SYSTEM
-    setIsReviewing(false);
+      setBooksAdded([data, ...booksAdded]);
+
+      // --- Reset Inputs ---
+      setReview('');
+      setReadStatus('');
+      // ... TODO: Update for STAR RATING SYSTEM
+      setIsReviewing(false);
+    } catch (err) {
+      console.error("Error adding book: ", err);
+      alert(err.message);
+    }
 
   };
 
@@ -85,9 +110,9 @@ function Post({title, author}) {
             <li key={post.id}>
               <div>{post.title}</div>
               <div>{post.author}</div>
-              <div>{post.dateAdded}</div>
+              <div>{post.date_added}</div>
               <div>{post.status}</div>
-              <div>{post.text}</div>
+              <div>{post.review}</div>
               <button className="deletePost" onClick={() => handleDeleteClick(post.id)}>
                 Delete
               </button>
