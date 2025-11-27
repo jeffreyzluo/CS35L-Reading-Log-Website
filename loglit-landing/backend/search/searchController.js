@@ -11,11 +11,8 @@ async function searchBooks(req, res, next) {
       throw err;
     }
 
-    console.log('--- LOG A (Controller): Attempting to call fetchBooks ---');
-
+    // Call Google Books API
     const results = await fetchBooks(query);
-
-    console.log('--- LOG C (Controller): fetchBooks returned successfully ---');
     
     res.json(results);
   } catch (err) {

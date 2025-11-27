@@ -16,7 +16,7 @@ async function fetchBooks(query) {
     console.log('--- BACKEND DEBUG: 3. Google API responded ---');
 
 
-    // ... Organize results ...
+    // Organize results
     const results = response.data.items?.map(book => ({
       title: book.volumeInfo.title || 'No title',
       authors: book.volumeInfo.authors || 'Unknown author',
@@ -29,25 +29,23 @@ async function fetchBooks(query) {
     // Returns to controller
     return results;
   } catch (err) {
-    // 💡 CRASH FIX: Log the error safely and set the correct status
-    console.error('--- CRITICAL GOOGLE API ERROR DETAILS ---');
-    
-    // Check if the error has a response (i.e., it's a 403, 400, etc.)
+    console.error('--- GOOGLE API ERROR DETAILS ---');
+
+    // Check error response
     if (err.response) {
         console.error('Status:', err.response.status);
         console.error('Google Error Data:', err.response.data); // This shows the reason!
     } else {
-        // Log a non-response error (e.g., network issue before connection)
+        // Log a non-response error
         console.error('Network Error:', err.message);
     }
     
-    // Log the full stack trace for detailed debugging
+    // Log the full stack trace for debugging
     console.error(err.stack);
-    console.error('-------------------------------------------');
 
-    // Create a new error with a status code to prevent server crash
+    // New error with status code to prevent server crash
     const newError = new Error('Failed to fetch books from Google Books API.');
-    // Preserve the status code (e.g., 403) or default to 500
+    // Preserve status code or default to 500
     newError.status = err.response ? err.response.status : 500; 
     
     throw newError;

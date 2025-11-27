@@ -4,11 +4,12 @@ const cors = require('cors');
 const searchRoute = require('./search/searchRoute');
 const { addBook } = require('./db');
 
+// Initialize web server
 const app = express();
 
-console.log(process.env.GOOGLE_BOOKS_API_KEY);
+console.log("Environment loaded:", !!process.env.GOOGLE_BOOKS_API_KEY);
 
-// Enable CORS for all origins (development-friendly)
+// Enable CORS
 app.use(cors());  
 
 // Parse JSON bodies
@@ -35,7 +36,7 @@ app.post('/api/books/add', async (req, res) => {
   }
 });
 
-// Error handler (optional)
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message });
