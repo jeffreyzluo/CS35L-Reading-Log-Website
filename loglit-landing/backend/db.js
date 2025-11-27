@@ -10,12 +10,11 @@
             - Title
             - Author
             - Date Added 
-            - Status (e.g., "Reading", "Completed", "Wishlist")
             - personal review
             - Rating (1-5 stars)
-
 */
 
+import bcrypt from 'bcrypt';
 require('dotenv').config();
 const { Pool } = require('pg');
 // Prefer a single DATABASE_URL when available (e.g. postgres://user:pass@host:port/db)
@@ -37,32 +36,26 @@ if (process.env.DATABASE_URL) {
 
 const pool = new Pool(poolConfig);
 
+async function withTransaction(callback) {
+    const client = await pool.connect();
 
-// Function to add a new user
-const newUser = async (username, email, passwordHash) => {
     try {
-        // Check if username or email already exists
-        const userCheck = await pool.query(
-            'SELECT id, username, email FROM users WHERE username = $1 OR email = $2',
-            [username, email]
-        );
+        await client.query('BEGIN');
 
-        if (userCheck.rows.length > 0) {
-            const existing = userCheck.rows[0];
-            if (existing.username === username) throw new Error('Username already exists');
-            if (existing.email === email) throw new Error('Email already exists');
-        }
+        const result = await callback(client);
 
-        const result = await pool.query(
-            'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email',
-            [username, email, passwordHash]
-        );
+        await client.query('COMMIT');
 
-        return result.rows[0];
-    } catch (error) {
-        throw error;
+        return result;
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
     }
-};
+}
+
+//Book operations (yet to convert into book_operations.js file)
 
 // Get user by email (used for login)
 const getUserByEmail = async (email) => {
@@ -78,23 +71,36 @@ const getUserByEmail = async (email) => {
 };
 
 // Function to add a new book
-const addBook = async (userId, title, author, status = null, review = null, rating = null) => {
+export const addBook = async (book_id, username, title, author, review = null, rating = null, date_added=Date.now(), genre=null) => {
     try {
         // Check if user exists
         const userCheck = await pool.query(
-            'SELECT id FROM users WHERE id = $1',
-            [userId]
+            'SELECT username FROM users WHERE username = $1',
+            [username]
         );
-
+        
+        //Check if title exists
+        const bookCheck = await pool.query(
+            'SELECT title, author FROM books WHERE title = $1 AND ',
+            [title]
+        )
+        
+        //Check if user owns the book already
+        const checkOwner = await pool.query(
+            'SELECT username FROM user_books WHERE username= $1 AND book_id = $2',
+            [username, book_id]
+        )
         if (userCheck.rows.length === 0) {
             throw new Error('User does not exist');
         }
-
+        if (bookCheck.rows.length > 0) {
+            throw new Error('Book title already exists');
+        }
         // Validate required fields
         if (!title) {
             throw new Error('Title is required');
         }
-
+        
         // Validate rating if provided
         if (rating !== null && (rating < 1 || rating > 5)) {
             throw new Error('Rating must be between 1 and 5');
@@ -102,7 +108,7 @@ const addBook = async (userId, title, author, status = null, review = null, rati
 
         const result = await pool.query(
             'INSERT INTO books (user_id, title, author, status, review, rating) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [userId, title, author || null, status || null, review || null, rating || null]
+            [userId, title, author || null, review || null, rating || null]
         );
 
         return result.rows[0];
@@ -112,7 +118,7 @@ const addBook = async (userId, title, author, status = null, review = null, rati
 };
 
 // Function to update a book
-const updateBook = async (bookId, updates) => {
+export const updateBook = async (bookId, updates) => {
     try {
         // Get current book data
         const currentBook = await pool.query(
@@ -154,8 +160,19 @@ const updateBook = async (bookId, updates) => {
     }
 };
 
+export const deleteBook = async (bookId) => {
+    try {
+        const result = await pool.query(
+            'DELETE FROM books WHERE id = $1 RETURNING *',
+            [bookId]
+        );
+    } catch (error) {
+        throw error;
+    }
+}
+
 // Function to retrieve all books for a user
-const retrieveBooks = async (userId) => {
+export const retrieveBooks = async (userId) => {
     try {
         const result = await pool.query(
             'SELECT * FROM books WHERE user_id = $1 ORDER BY date_added DESC',
@@ -168,11 +185,8 @@ const retrieveBooks = async (userId) => {
     }
 };
 
-module.exports = {
+export {
+    withTransaction,
     pool,
-    newUser,
-    getUserByEmail,
-    addBook,
-    updateBook,
-    retrieveBooks
+
 };
