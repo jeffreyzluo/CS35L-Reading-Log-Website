@@ -1,6 +1,6 @@
-const { fetchBooks } = require('./searchService');
+import { fetchBooks } from './searchService.js';
 
-async function searchBooks(req, res, next) {
+export async function searchBooks(req, res, next) {
   
   try {
     const query = req.query.q;
@@ -19,5 +19,3 @@ async function searchBooks(req, res, next) {
     next(err);
   }
 }
-
-module.exports = { searchBooks };

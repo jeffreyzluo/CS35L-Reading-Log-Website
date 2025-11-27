@@ -1,13 +1,18 @@
-require('dotenv').config();
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const https = require('https');
-const crypto = require('crypto');
-const { newUser, getUserByEmail, addBook } = require('./db');
-const searchRoute = require('./search/searchRoute');
+import dotenv from 'dotenv';
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import https from 'https';
+import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+import { newUser, getUserByEmail } from './db.js';
+import { addBook } from './book.js';
+import { addBookToUser } from './book_user.js';
+import searchRoute from './search/searchRoute.js';
+
+dotenv.config();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '706234058502-c2dk7t2rr4aod9mf5jg8essau207cnrs.apps.googleusercontent.com';
 
@@ -165,16 +170,9 @@ app.get('/api/protected', authMiddleware, (req, res) => {
 app.use('/api/search', searchRoute);
 app.post('/api/books/add', async (req, res) => {
   try {
-    const {userId, title, author, status, review, rating } = req.body;
+    const { title, author } = req.body;
 
-    const newBook = await addBook(
-      userId,
-      title,
-      author,
-      status,
-      review,
-      rating
-    );
+    const newBook = await addBook(title, author);
 
     res.status(200).json(newBook);
   } catch (error) {
@@ -188,9 +186,14 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message });
 });
 
-const port = process.env.PORT || 3001;
+// If invoked directly, start the server. Otherwise export the app for tests.
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
+  const port = process.env.PORT || 3001;
+  app.listen(port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Backend API listening on port ${port}`);
+  });
+}
 
-app.listen(port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Backend API listening on port ${port}`);
-});
+export default app;

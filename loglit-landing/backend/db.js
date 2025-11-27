@@ -1,192 +1,136 @@
 /*
-    Create a database that stores the following information:
-        - Username
-        - Email
-        - Hashed Password
-        - Profile photo
-        - Date Joined
-        - Books
-        - Each Book should have:
-            - Title
-            - Author
-            - Date Added 
-            - personal review
-            - Rating (1-5 stars)
+	ESM-style DB helper for readinglog app
 */
+import dotenv from 'dotenv';
+import { Pool } from 'pg';
 
-import bcrypt from 'bcrypt';
-require('dotenv').config();
-const { Pool } = require('pg');
-// Prefer a single DATABASE_URL when available (e.g. postgres://user:pass@host:port/db)
-// Otherwise fall back to individual PG_* env vars. Avoid hardcoding a user.
+dotenv.config();
+
+// Prefer a single DATABASE_URL when available
 const poolConfig = {};
 if (process.env.DATABASE_URL) {
-    poolConfig.connectionString = process.env.DATABASE_URL;
-    // If using a hosted DB that requires SSL, the user can set PGSSLMODE or similar.
-    if (process.env.DB_SSL === 'true') {
-        poolConfig.ssl = { rejectUnauthorized: false };
-    }
+	poolConfig.connectionString = process.env.DATABASE_URL;
+	if (process.env.DB_SSL === 'true') {
+		poolConfig.ssl = { rejectUnauthorized: false };
+	}
 } else {
-    poolConfig.user = process.env.PGUSER || 'jeffrey';
-    poolConfig.host = process.env.PGHOST || 'localhost';
-    poolConfig.database = process.env.PGDATABASE || 'readinglog';
-    poolConfig.password = process.env.PGPASSWORD || undefined;
-    poolConfig.port = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
+	poolConfig.user = process.env.PGUSER || undefined;
+	poolConfig.host = process.env.PGHOST || 'localhost';
+	poolConfig.database = process.env.PGDATABASE || 'readinglog';
+	poolConfig.password = process.env.PGPASSWORD || undefined;
+	poolConfig.port = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
 }
 
 const pool = new Pool(poolConfig);
 
 async function withTransaction(callback) {
-    const client = await pool.connect();
-
-    try {
-        await client.query('BEGIN');
-
-        const result = await callback(client);
-
-        await client.query('COMMIT');
-
-        return result;
-    } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.release();
-    }
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+		const result = await callback(client);
+		await client.query('COMMIT');
+		return result;
+	} catch (err) {
+		await client.query('ROLLBACK');
+		throw err;
+	} finally {
+		client.release();
+	}
 }
-
-//Book operations (yet to convert into book_operations.js file)
 
 // Get user by email (used for login)
 const getUserByEmail = async (email) => {
-    try {
-        const result = await pool.query(
-            'SELECT id, username, email, password_hash FROM users WHERE email = $1',
-            [email]
-        );
-        return result.rows[0] || null;
-    } catch (error) {
-        throw error;
-    }
+	try {
+		const result = await pool.query(
+			'SELECT id, username, email, password_hash FROM users WHERE email = $1',
+			[email]
+		);
+		return result.rows[0] || null;
+	} catch (error) {
+		throw error;
+	}
+};
+
+// Function to add a new user
+const newUser = async (username, email, passwordHash) => {
+	try {
+		const userCheck = await pool.query(
+			'SELECT id, username, email FROM users WHERE username = $1 OR email = $2',
+			[username, email]
+		);
+
+		if (userCheck.rows.length > 0) {
+			const existing = userCheck.rows[0];
+			if (existing.username === username) throw new Error('Username already exists');
+			if (existing.email === email) throw new Error('Email already exists');
+		}
+
+		const result = await pool.query(
+			'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email',
+			[username, email, passwordHash]
+		);
+
+		return result.rows[0];
+	} catch (error) {
+		throw error;
+	}
 };
 
 // Function to add a new book
-export const addBook = async (book_id, username, title, author, review = null, rating = null, date_added=Date.now(), genre=null) => {
-    try {
-        // Check if user exists
-        const userCheck = await pool.query(
-            'SELECT username FROM users WHERE username = $1',
-            [username]
-        );
-        
-        //Check if title exists
-        const bookCheck = await pool.query(
-            'SELECT title, author FROM books WHERE title = $1 AND ',
-            [title]
-        )
-        
-        //Check if user owns the book already
-        const checkOwner = await pool.query(
-            'SELECT username FROM user_books WHERE username= $1 AND book_id = $2',
-            [username, book_id]
-        )
-        if (userCheck.rows.length === 0) {
-            throw new Error('User does not exist');
-        }
-        if (bookCheck.rows.length > 0) {
-            throw new Error('Book title already exists');
-        }
-        // Validate required fields
-        if (!title) {
-            throw new Error('Title is required');
-        }
-        
-        // Validate rating if provided
-        if (rating !== null && (rating < 1 || rating > 5)) {
-            throw new Error('Rating must be between 1 and 5');
-        }
+const addBook = async (userId, title, author, status = null, review = null, rating = null) => {
+	try {
+		const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+		if (userCheck.rows.length === 0) throw new Error('User does not exist');
+		if (!title) throw new Error('Title is required');
+		if (rating !== null && (rating < 1 || rating > 5)) throw new Error('Rating must be between 1 and 5');
 
-        const result = await pool.query(
-            'INSERT INTO books (user_id, title, author, status, review, rating) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [userId, title, author || null, review || null, rating || null]
-        );
+		const result = await pool.query(
+			'INSERT INTO books (user_id, title, author, status, review, rating) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+			[userId, title, author || null, status || null, review || null, rating || null]
+		);
 
-        return result.rows[0];
-    } catch (error) {
-        throw error;
-    }
+		return result.rows[0];
+	} catch (error) {
+		throw error;
+	}
 };
 
 // Function to update a book
-export const updateBook = async (bookId, updates) => {
-    try {
-        // Get current book data
-        const currentBook = await pool.query(
-            'SELECT * FROM books WHERE id = $1',
-            [bookId]
-        );
+const updateBook = async (bookId, updates) => {
+	try {
+		const currentBook = await pool.query('SELECT * FROM books WHERE id = $1', [bookId]);
+		if (currentBook.rows.length === 0) throw new Error('Book not found');
+		const book = currentBook.rows[0];
 
-        if (currentBook.rows.length === 0) {
-            throw new Error('Book not found');
-        }
+		const newData = {
+			title: updates.title || book.title,
+			author: updates.author !== undefined ? updates.author : book.author,
+			status: updates.status !== undefined ? updates.status : book.status,
+			review: updates.review !== undefined ? updates.review : book.review,
+			rating: updates.rating !== undefined ? updates.rating : book.rating,
+		};
 
-        const book = currentBook.rows[0];
+		if (newData.rating !== null && (newData.rating < 1 || newData.rating > 5)) throw new Error('Rating must be between 1 and 5');
 
-        // Merge updates with current data, keeping existing values if updates not provided
-        const newData = {
-            title: updates.title || book.title,
-            author: updates.author !== undefined ? updates.author : book.author,
-            status: updates.status !== undefined ? updates.status : book.status,
-            review: updates.review !== undefined ? updates.review : book.review,
-            rating: updates.rating !== undefined ? updates.rating : book.rating
-        };
+		const result = await pool.query(
+			`UPDATE books SET title = $2, author = $3, status = $4, review = $5, rating = $6 WHERE id = $1 RETURNING *`,
+			[bookId, newData.title, newData.author, newData.status, newData.review, newData.rating]
+		);
 
-        // Validate rating if it's being updated
-        if (newData.rating !== null && (newData.rating < 1 || newData.rating > 5)) {
-            throw new Error('Rating must be between 1 and 5');
-        }
-
-        const result = await pool.query(
-            `UPDATE books 
-             SET title = $2, author = $3, status = $4, review = $5, rating = $6 
-             WHERE id = $1 
-             RETURNING *`,
-            [bookId, newData.title, newData.author, newData.status, newData.review, newData.rating]
-        );
-
-        return result.rows[0];
-    } catch (error) {
-        throw error;
-    }
+		return result.rows[0];
+	} catch (error) {
+		throw error;
+	}
 };
-
-export const deleteBook = async (bookId) => {
-    try {
-        const result = await pool.query(
-            'DELETE FROM books WHERE id = $1 RETURNING *',
-            [bookId]
-        );
-    } catch (error) {
-        throw error;
-    }
-}
 
 // Function to retrieve all books for a user
-export const retrieveBooks = async (userId) => {
-    try {
-        const result = await pool.query(
-            'SELECT * FROM books WHERE user_id = $1 ORDER BY date_added DESC',
-            [userId]
-        );
-
-        return result.rows;
-    } catch (error) {
-        throw error;
-    }
+const retrieveBooks = async (userId) => {
+	try {
+		const result = await pool.query('SELECT * FROM books WHERE user_id = $1 ORDER BY date_added DESC', [userId]);
+		return result.rows;
+	} catch (error) {
+		throw error;
+	}
 };
 
-export {
-    withTransaction,
-    pool,
-
-};
+export { withTransaction, pool, getUserByEmail, newUser, addBook, updateBook, retrieveBooks };

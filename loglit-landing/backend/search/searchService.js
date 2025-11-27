@@ -1,7 +1,7 @@
-const axios = require('axios'); 
+import axios from 'axios';
 
 // Service function to fetch books from Google Books API
-async function fetchBooks(query) {
+export async function fetchBooks(query) {
   try {
     console.log('--- BACKEND DEBUG: 1. Entering fetchBooks ---');
     // ... API URL construction ...
@@ -51,6 +51,3 @@ async function fetchBooks(query) {
     throw newError;
   }
 }
-
-
-module.exports = { fetchBooks };

@@ -1,6 +1,4 @@
 import { withTransaction } from './db.js';
-const pool = require('./db.js');
-const bcrypt = require('bcrypt');
 
 
 /*
@@ -18,7 +16,7 @@ CREATE TABLE user_books (
 export async function addBookToUser(username, bookId, rating, review, status, added_at) {
     return withTransaction(async (client) => {
         const result = await client.query(
-            'INSERT INTO user_books (username, book_id, rating, review, status, added_at) VALUES ($1, $2, $3, $4, $5)',
+            'INSERT INTO user_books (username, book_id, rating, review, status, added_at) VALUES ($1, $2, $3, $4, $5, $6)',
             [username, bookId, rating, review, status, added_at]
         );
         return result.rows;
@@ -27,7 +25,7 @@ export async function addBookToUser(username, bookId, rating, review, status, ad
 
 export async function deleteUserBook (username, bookId) {
     return withTransaction(async (client) => {
-        const result = await client.query('DELETE FROM user_books WHERE username = $1 AND bookId = $2',
+        const result = await client.query('DELETE FROM user_books WHERE username = $1 AND book_id = $2',
             [username, bookId]
         );
         if (result.rowCount === 0) {

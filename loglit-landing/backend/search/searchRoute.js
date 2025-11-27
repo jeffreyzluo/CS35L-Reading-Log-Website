@@ -1,5 +1,6 @@
-const express = require('express');
-const { searchBooks } = require('./searchController');
+import express from 'express';
+import { searchBooks } from './searchController.js';
+
 const router = express.Router();
 
 // GET
@@ -8,9 +9,9 @@ router.get('/', async (req, res, next) => {
     // Call controller to handle search logic
     await searchBooks(req, res, next);
   } catch (err) {
-    // Forwars errors to global error handler in indes.js
+    // Forwards errors to global error handler
     next(err);
   }
 });
 
-module.exports = router;
+export default router;

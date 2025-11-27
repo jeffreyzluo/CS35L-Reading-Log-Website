@@ -1,20 +1,21 @@
-const { Given, When, Then } = require('@cucumber/cucumber');
-const request = require('supertest');
-const assert = require('assert');
-const path = require('path');
-require('dotenv').config({ path: path.resolve(process.cwd(), '.env') });
+import { Given, When, Then } from '@cucumber/cucumber';
+import request from 'supertest';
+import assert from 'assert';
+import path from 'path';
+import dotenv from 'dotenv';
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-// We'll dynamically require the app once implemented
+// Dynamically import the app so tests can run whether it's implemented or not
 let app;
 try {
-  app = require('../../app');
+  const mod = await import('../../app.js');
+  app = mod.default;
 } catch (e) {
-  // Placeholder stub to make initial failing tests explicit
   app = null;
 }
 
-const { pool } = require('../../db');
-const jwt = require('jsonwebtoken');
+import { pool } from '../../db.js';
+import jwt from 'jsonwebtoken';
 
 let registrationResponse;
 let loginResponse;
