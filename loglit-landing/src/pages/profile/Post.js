@@ -8,18 +8,22 @@ function Post() {
 
   // --- Post Handlers ---
   const handleShareClick = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || rating === 0)
+    {
+      alert("Please enter a post and a rating before sharing.");
+      return;
+    }
 
     const newPost = {
       id: Date.now(),
       text: input.trim(),
       timestamp: new Date().toDateString(),
-      rating: rating ? Number(rating) : null,
+      rating: rating,
     };
 
     setPosts([newPost, ...posts]);
     setInput('');
-    setRating('');
+    setRating(0);
   };
   const handleDeleteClick = (id) => {
     setPosts(posts.filter((post) => post.id !== id));
@@ -38,15 +42,21 @@ function Post() {
           placeholder="Share a book!">
         </textarea>
         {/* Rating Section */}
-        <input 
-          type='number'
-          min='1'
-          max='5'
-          value={rating}
-          onChange={(event) => setRating(event.target.value)}
-          placeholder='Rate 1-5'
-          style={{width: '10%'}}
-        />
+        <div className="star-rating">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            onClick={() => setRating(star)} // Set the rating when a star is clicked
+            style={{
+              fontSize: '24px',
+              cursor: 'pointer',
+              color: star <= rating ? '#FFD700' : '#ccc', // Highlight selected stars
+            }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
         
         <button className="postButton" onClick={handleShareClick}>Share</button>
       </div>
