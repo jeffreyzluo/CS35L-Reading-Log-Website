@@ -13,8 +13,8 @@ function Header() {
       <div className="container">
         <h1 className="logo">LogLit</h1>
         <nav>
-          <button className="signup-button" onClick={() => handleButtonClick('/Login')}>Login/Sign Up</button>
-          <button className="profile-button" onClick={() => handleButtonClick('/Profile')}>Profile</button>        
+          <button className="signup-button" onClick={() => handleButtonClick('/login')}>Login/Sign Up</button>
+          <button className="profile-button" onClick={() => handleButtonClick('/profile')}>Profile</button>        
         </nav>
       </div>
     </header>
@@ -46,10 +46,39 @@ function Home() {
 }
 
 function App() {
+  const navigate = useNavigate();
+
+  const handleLogin = async ({ email, password }) => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
+      });
+
+      const body = await res.json();
+      if (!res.ok) {
+        // show simple alert; Login component can be extended to show inline errors
+        alert(body.error || 'Login failed');
+        return;
+      }
+
+      // Save token and navigate to profile
+      if (body.token) {
+        localStorage.setItem('authToken', body.token);
+        navigate('/profile');
+      }
+    } catch (err) {
+      console.error('Login error', err);
+      alert('Login error');
+    }
+  };
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<Login onSubmit={handleLogin} />} />
       <Route path="/profile" element={<Profile />} />
     </Routes>
   );
