@@ -6,7 +6,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const https = require('https');
 const crypto = require('crypto');
-const { newUser, getUserByEmail } = require('./db');
+const { newUser, getUserByEmail, addBook } = require('./db');
+const searchRoute = require('./search/searchRoute');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '706234058502-c2dk7t2rr4aod9mf5jg8essau207cnrs.apps.googleusercontent.com';
 
@@ -160,4 +161,36 @@ app.get('/api/protected', authMiddleware, (req, res) => {
   return res.status(200).json({ username: req.user.username });
 });
 
-module.exports = app;
+// Routes
+app.use('/api/search', searchRoute);
+app.post('/api/books/add', async (req, res) => {
+  try {
+    const {userId, title, author, status, review, rating } = req.body;
+
+    const newBook = await addBook(
+      userId,
+      title,
+      author,
+      status,
+      review,
+      rating
+    );
+
+    res.status(200).json(newBook);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({ error: err.message });
+});
+
+const port = process.env.PORT || 3001;
+
+app.listen(port, () => {
+  // eslint-disable-next-line no-console
+  console.log(`Backend API listening on port ${port}`);
+});

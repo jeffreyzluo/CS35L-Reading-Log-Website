@@ -10,7 +10,7 @@ function Search() {
     console.log("Searching for...", query)
 
     // Fetch results from backend
-    fetch(`http://localhost:5001/api/search?q=${encodeURIComponent(query)}`)
+    fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(query)}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
