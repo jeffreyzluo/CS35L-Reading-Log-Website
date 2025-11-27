@@ -15,16 +15,26 @@
 */
 
 import bcrypt from 'bcrypt';
-import pg from 'pg';
-const { Pool } = pg;
+require('dotenv').config();
+const { Pool } = require('pg');
+// Prefer a single DATABASE_URL when available (e.g. postgres://user:pass@host:port/db)
+// Otherwise fall back to individual PG_* env vars. Avoid hardcoding a user.
+const poolConfig = {};
+if (process.env.DATABASE_URL) {
+    poolConfig.connectionString = process.env.DATABASE_URL;
+    // If using a hosted DB that requires SSL, the user can set PGSSLMODE or similar.
+    if (process.env.DB_SSL === 'true') {
+        poolConfig.ssl = { rejectUnauthorized: false };
+    }
+} else {
+    poolConfig.user = process.env.PGUSER || 'jeffrey';
+    poolConfig.host = process.env.PGHOST || 'localhost';
+    poolConfig.database = process.env.PGDATABASE || 'readinglog';
+    poolConfig.password = process.env.PGPASSWORD || undefined;
+    poolConfig.port = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
+}
 
-const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'readinglog',
-  password: process.env.PGPASSWORD,
-  port: 5432,
-});
+const pool = new Pool(poolConfig);
 
 async function withTransaction(callback) {
     const client = await pool.connect();
@@ -46,6 +56,19 @@ async function withTransaction(callback) {
 }
 
 //Book operations (yet to convert into book_operations.js file)
+
+// Get user by email (used for login)
+const getUserByEmail = async (email) => {
+    try {
+        const result = await pool.query(
+            'SELECT id, username, email, password_hash FROM users WHERE email = $1',
+            [email]
+        );
+        return result.rows[0] || null;
+    } catch (error) {
+        throw error;
+    }
+};
 
 // Function to add a new book
 export const addBook = async (book_id, username, title, author, review = null, rating = null, date_added=Date.now(), genre=null) => {
@@ -165,4 +188,5 @@ export const retrieveBooks = async (userId) => {
 export {
     withTransaction,
     pool,
+
 };
