@@ -24,10 +24,29 @@ function SharedPosts() {
     fetchBooks();
   }, []);
 
-  const handleDeleteClick = (id) => {
-    console.log("Delete book with ID:", id);
-
+  const handleDeleteClick = async (bookId) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/books/${bookId}`, {
+        method: 'DELETE',
+        credentials: 'include', // send JWT cookie
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete book');
+      }
+  
+      console.log('Deleted book:', data);
+  
+      // Remove the deleted book from local state
+      setBooks((prevBooks) => prevBooks.filter((book) => book.book_id !== bookId));
+    } catch (err) {
+      console.error('Error deleting book:', err);
+      alert(err.message);
+    }
   };
+  
 
   return(
     <div className="post-Section">
@@ -35,8 +54,8 @@ function SharedPosts() {
       <div>
       <ul className="sharedPost">
         {books.map((post) => (
-        <li key={post.bookId}>
-          <div>{post.bookId}</div>
+        <li key={post.book_id}>
+          <div>{post.book_id}</div>
           <div>{post.author || 'Unknown author'}</div>
           <div>{new Date(post.added_at).toLocaleString()}</div>
           <div>{post.status}</div>

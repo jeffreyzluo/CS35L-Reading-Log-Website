@@ -5,7 +5,7 @@ function Post({title, author, isbn}) {
   const [readStatus, setReadStatus] = useState('');
   const [review, setReview] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
-  const [booksAdded, setBooksAdded] = useState([]);
+  const [rating, setRating] = useState(0);
 
 
   // --- Post Handlers ---
@@ -13,14 +13,6 @@ function Post({title, author, isbn}) {
 
   const handleShareClick = async () => {
     if (!review.trim()) return;
-
-    const newBook = {
-      title: title,
-      author: author,
-      status: readStatus,
-      review: review.trim(),
-      rating: "RATING"
-    };
 
     try {
       // Send POST request to backend
@@ -30,7 +22,7 @@ function Post({title, author, isbn}) {
         credentials: "include",
         body: JSON.stringify({
           bookId: isbn,
-          rating: 5,        // placeholder for rating
+          rating: rating,        // placeholder for rating
           review: review.trim(),
           status: readStatus,
           added_at: new Date().toISOString()
@@ -43,13 +35,10 @@ function Post({title, author, isbn}) {
         throw new Error(data.error || "Failed to add book");
       }
       
-
-      setBooksAdded([data, ...booksAdded]);
-
       // --- Reset Inputs ---
       setReview('');
       setReadStatus('');
-      // ... TODO: Update for STAR RATING SYSTEM
+      setRating(0);
       setIsReviewing(false);
     } catch (err) {
       console.error("Error adding book: ", err);
@@ -71,12 +60,6 @@ function Post({title, author, isbn}) {
       console.error('Error fetching current user:', err);
     }
   };
-
-  const handleDeleteClick = (id) => {
-    setBooksAdded(booksAdded.filter((booksAdded) => booksAdded.id !== id));
-
-  };
-  
 
   return(
     <div className="post-Section">
@@ -108,7 +91,23 @@ function Post({title, author, isbn}) {
             onChange={(event) => setReview(event.target.value)}
             placeholder="Share a book!">
           </textarea>
-        
+
+          {/* Star Rating */}
+          <div className="star-rating">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                onClick={() => setRating(star)} // Update the rating state
+                style={{
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: star <= rating ? "#FFD700" : "#ccc" // Highlight selected stars
+                }}
+              >
+              *
+              </span>
+            ))}
+          </div>
           <button className="postButton" onClick={handleShareClick}>Share</button>
           </>
         ) : (
@@ -119,24 +118,6 @@ function Post({title, author, isbn}) {
         </>
         )}
 
-      </div>
-
-      {/* Shared Posts */}
-      <div>
-        <ul className="sharedPost">
-          {booksAdded.map((post) => (
-            <li key={post.id}>
-              <div>{post.title}</div>
-              <div>{post.author}</div>
-              <div>{post.date_added}</div>
-              <div>{post.status}</div>
-              <div>{post.review}</div>
-              <button className="deletePost" onClick={() => handleDeleteClick(post.id)}>
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );

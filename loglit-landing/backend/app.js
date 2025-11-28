@@ -9,7 +9,7 @@ import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
 import { newUser, getUserByEmail } from './db.js';
-import { addBookToUser, retrieveBook } from './book_user.js';
+import { addBookToUser, retrieveBook, deleteUserBook } from './book_user.js';
 import searchRoute from './search/searchRoute.js';
 
 dotenv.config();
@@ -185,8 +185,9 @@ app.post('/api/books/add', authMiddleware, async (req, res) => {
     const newBook = await addBookToUser(username, bookId, rating, review, status, added_at);
 
     res.status(200).json(newBook);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+  } catch (err) {
+    console.error("Error adding book:", err); // optional logging
+    res.status(500).json({ error: error.message });
   }
 });
 app.get('/api/user_books', authMiddleware, async (req, res) => {
@@ -195,7 +196,20 @@ app.get('/api/user_books', authMiddleware, async (req, res) => {
       const books = await retrieveBook(username);
       res.json(books);
   } catch (err) {
-      res.status(500).json({ error: err.message });
+    console.error("Error adding book:", err); // optional logging
+    res.status(500).json({ error: error.message });
+  }
+});
+app.delete('/api/books/:bookId', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { bookId } = req.params;
+
+    const result = await deleteUserBook(username, bookId);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error deleting book:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
