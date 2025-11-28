@@ -23,7 +23,8 @@ function Search() {
           name: item.title,              // title
           authors: item.authors,         // author
           description: item.description, // description
-          thumbnail: item.thumbnail      // thumbnail (optional)
+          thumbnail: item.thumbnail,      // thumbnail (optional)
+          isbn: item.isbn                 // isbn
         }));
         setResults(formattedResults);
       })
@@ -48,6 +49,7 @@ function Search() {
           results.map((item, idx) => (
             <div key={idx} style={{ padding: "5px", borderBottom: "1px solid #ccc" }}>
               <h3>{item.name}</h3>
+              {item.isbn && <p>ISBN: {item.isbn}</p>}
               {item.authors && (
                 <p>
                   By: {
@@ -63,6 +65,7 @@ function Search() {
               {item.thumbnail && <img src={item.thumbnail} alt={item.name} />}
               <Post 
                 title={item.name} 
+                isbn={item.isbn}
                 author={
                   Array.isArray(item.authors) 
                     ? item.authors.join(", ") 
