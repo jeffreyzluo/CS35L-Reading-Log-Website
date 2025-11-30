@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import SearchBar from './SearchBar';
+import './Search.css';
+import '../profile/Profile.css';
 import Post from '../profile/Post';
 
 
@@ -37,44 +39,37 @@ function Search() {
 
   return (
     <div className="search-page">
-      <div className="header">
-        <h1 className="container">Find a Book!</h1>
+      <div className="profile-header">
+        <h1 className="profile-title">Find a Book!</h1>
       </div>
       <div className="search-box">
-          <SearchBar onSearch={handleSearch}/>
+        <SearchBar onSearch={handleSearch} />
       </div>
-      <div>
+
+      <div className="results-container">
         {results.length > 0 ? (
           results.map((item, idx) => (
-            <div key={idx} style={{ padding: "5px", borderBottom: "1px solid #ccc" }}>
-              <h3>{item.name}</h3>
-              {item.authors && (
-                <p>
-                  By: {
-                    // Check if it's an array and join it, otherwise just display the value (which might be a string)
-                    Array.isArray(item.authors) 
-                      ? item.authors.join(', ') 
-                      : item.authors
-                  }
-                </p>
+            <div className="result-item" key={idx}>
+              {item.thumbnail && (
+                <img className="result-thumbnail" src={item.thumbnail} alt={item.name} />
               )}
-
-              {item.description && <p>{item.description}</p>}
-              {item.thumbnail && <img src={item.thumbnail} alt={item.name} />}
-              <Post 
-                title={item.name} 
-                author={
-                  Array.isArray(item.authors) 
-                    ? item.authors.join(", ") 
-                    : item.authors
-                }
-              />   {/* ← included inside each result */}
+              <div className="result-meta">
+                <h3>{item.name}</h3>
+                {item.authors && (
+                  <p>By: {Array.isArray(item.authors) ? item.authors.join(', ') : item.authors}</p>
+                )}
+                {item.description && <p>{item.description}</p>}
+                <Post
+                  title={item.name}
+                  author={Array.isArray(item.authors) ? item.authors.join(', ') : item.authors}
+                />
+              </div>
             </div>
           ))
         ) : (
-          <p>No results yet</p>
-        )
-        }</div>
+          <p className="no-results">No results yet</p>
+        )}
+      </div>
     </div>
   );
 }
