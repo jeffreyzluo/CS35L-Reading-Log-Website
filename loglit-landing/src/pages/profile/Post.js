@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-function Post({title, author}) {
+function Post({title, author, isbn}) {
   // Post feature state
   const [readStatus, setReadStatus] = useState('');
   const [review, setReview] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
-  const [booksAdded, setBooksAdded] = useState([]);
+  const [rating, setRating] = useState(0);
 
 
   // --- Post Handlers ---
@@ -14,26 +14,18 @@ function Post({title, author}) {
   const handleShareClick = async () => {
     if (!review.trim()) return;
 
-    const newBook = {
-      title: title,
-      author: author,
-      status: readStatus,
-      review: review.trim(),
-      rating: "RATING"
-    };
-
     try {
       // Send POST request to backend
-      const response = await fetch("http://localhost:5001/api/books/add", {
+      const response = await fetch("http://localhost:3001/api/books/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
-          userId: 1,       // replace with actual logged-in user
-          title: title,
-          author: author,
-          status: readStatus,
+          bookId: isbn,
+          rating: rating,        // placeholder for rating
           review: review.trim(),
-          rating: 5        // placeholder for rating
+          status: readStatus,
+          added_at: new Date().toISOString()
         })
       });
   
@@ -43,13 +35,10 @@ function Post({title, author}) {
         throw new Error(data.error || "Failed to add book");
       }
       
-
-      setBooksAdded([data, ...booksAdded]);
-
       // --- Reset Inputs ---
       setReview('');
       setReadStatus('');
-      // ... TODO: Update for STAR RATING SYSTEM
+      setRating(0);
       setIsReviewing(false);
     } catch (err) {
       console.error("Error adding book: ", err);
@@ -58,11 +47,19 @@ function Post({title, author}) {
 
   };
 
-  const handleDeleteClick = (id) => {
-    setBooksAdded(booksAdded.filter((booksAdded) => booksAdded.id !== id));
-
+  const handleTestSession = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/me', {
+        method: 'GET',
+        credentials: 'include', // send the JWT cookie
+      });
+      const data = await response.json();
+      console.log('Current logged-in user (frontend):', data);
+      // backend will also print the user in terminal
+    } catch (err) {
+      console.error('Error fetching current user:', err);
+    }
   };
-  
 
   return(
     <div className="post-Section">
@@ -79,6 +76,10 @@ function Post({title, author}) {
           <option value="completed">✅ Completed</option>
           <option value="wishlist">⭐ Wishlist</option>
         </select>
+        {/* --- Test button --- */}
+          <button
+          style={{ marginTop: '10px', backgroundColor: '#eee', padding: '5px 10px' }}
+          onClick={handleTestSession}>Test Session</button>
 
         {/* Post Review */}
         {isReviewing ? (
@@ -90,7 +91,23 @@ function Post({title, author}) {
             onChange={(event) => setReview(event.target.value)}
             placeholder="Share a book!">
           </textarea>
-        
+
+          {/* Star Rating */}
+          <div className="star-rating">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                onClick={() => setRating(star)} // Update the rating state
+                style={{
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: star <= rating ? "#FFD700" : "#ccc" // Highlight selected stars
+                }}
+              >
+              *
+              </span>
+            ))}
+          </div>
           <button className="postButton" onClick={handleShareClick}>Share</button>
           </>
         ) : (
@@ -101,24 +118,6 @@ function Post({title, author}) {
         </>
         )}
 
-      </div>
-
-      {/* Shared Posts */}
-      <div>
-        <ul className="sharedPost">
-          {booksAdded.map((post) => (
-            <li key={post.id}>
-              <div>{post.title}</div>
-              <div>{post.author}</div>
-              <div>{post.date_added}</div>
-              <div>{post.status}</div>
-              <div>{post.review}</div>
-              <button className="deletePost" onClick={() => handleDeleteClick(post.id)}>
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );

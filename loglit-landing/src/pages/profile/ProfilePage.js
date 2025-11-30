@@ -4,6 +4,7 @@ import Bio from "./Bio.js";
 import Username from "./Username.js";
 import ProfilePic from './ProfilePic.js';
 import Post from "./Post.js";
+import SharedPosts from "./SharedPosts.js";
 
 function Profile() {
   return (
@@ -27,7 +28,7 @@ function Profile() {
         </div>
       </div>
         <div className="post-main">
-          <Post/>
+          <SharedPosts/>
         </div>
     </div>
   );
