@@ -12,11 +12,11 @@ function Header() {
   return (
     <header className="header">
       <div className="container">
-        <h1 className="logo">LogLit</h1>
+        <h1 className="logo" onClick={() => handleButtonClick('/')}>LogLit</h1>
         <nav>
-          <button className="signup-button" onClick={() => handleButtonClick('/Login')}>Login/Sign Up</button>
-          <button className="profile-button" onClick={() => handleButtonClick('/Profile')}>Profile</button>
-          <button className="search-button" onClick={() => handleButtonClick('/Search')}>Search</button>                
+          <button className="signup-button" onClick={() => handleButtonClick('/login')}>Login/Sign Up</button>
+          <button className="profile-button" onClick={() => handleButtonClick('/profile')}>Profile</button>
+          <button className="search-button" onClick={() => handleButtonClick('/search')}>Search</button>                
         </nav>
       </div>
     </header>
@@ -24,6 +24,16 @@ function Header() {
 }
 
 function Hero() {
+  const navigate = useNavigate();
+  const handleGetStarted = () => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      navigate('/search');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <section className="hero">
       <div className="container">
@@ -32,7 +42,7 @@ function Hero() {
           Log your books, track your progress, and discover new reads. LogLit
           makes it easy to keep your reading organized and inspiring.
         </p>
-        <button className="cta-button">Get Started</button>
+        <button className="cta-button" onClick={handleGetStarted}>Get Started</button>
       </div>
     </section>
   );
@@ -41,7 +51,6 @@ function Hero() {
 function Home() {
   return (
     <div className="App">
-      <Header />
       <Hero />
     </div>
   );
@@ -78,13 +87,15 @@ function App() {
   };
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login onSubmit={handleLogin} />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/Search" element={<Search />} />
-
-    </Routes>
+    <>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login onSubmit={handleLogin} />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/search" element={<Search />} />
+      </Routes>
+    </>
   );
 }
 

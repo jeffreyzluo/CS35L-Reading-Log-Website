@@ -9,8 +9,8 @@ import SharedPosts from "./SharedPosts.js";
 function Profile() {
   return (
     <div className="profile-page">
-      <div className="header">
-        <h1 className="container">My Profile</h1>
+      <div className="profile-header">
+        <h1 className="profile-title">My Profile</h1>
       </div>
       <div className="profile-main">
         {/* Profile picture section */}

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import SearchBar from './SearchBar';
+import './Search.css';
+import '../profile/Profile.css';
 import Post from '../profile/Post';
 
 
@@ -38,13 +40,14 @@ function Search() {
 
   return (
     <div className="search-page">
-      <div className="header">
-        <h1 className="container">Find a Book!</h1>
+      <div className="profile-header">
+        <h1 className="profile-title">Find a Book!</h1>
       </div>
       <div className="search-box">
-          <SearchBar onSearch={handleSearch}/>
+        <SearchBar onSearch={handleSearch} />
       </div>
-      <div>
+
+      <div className="results-container">
         {results.length > 0 ? (
           results.map((item, idx) => (
             <div key={idx} style={{ padding: "5px", borderBottom: "1px solid #ccc" }}>
@@ -75,9 +78,9 @@ function Search() {
             </div>
           ))
         ) : (
-          <p>No results yet</p>
-        )
-        }</div>
+          <p className="no-results">No results yet</p>
+        )}
+      </div>
     </div>
   );
 }

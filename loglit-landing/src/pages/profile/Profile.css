@@ -41,3 +41,54 @@
   gap: 1rem; /* space between posts */
 }
 
+/* When Post component is used inside compact contexts (like search results),
+   make the post controls compact and responsive so buttons don't overflow */
+.result-meta .post-Container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.result-meta .status-select {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.result-meta .post-Review {
+  height: auto;
+  min-height: 3.2rem;
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.result-meta .postButton,
+.result-meta .post-button {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.result-meta .sharedPost {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Page header (not the global site header) */
+.profile-header {
+  padding: 0 0 0.5rem 0;
+  background: transparent;
+}
+
+.profile-title {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #333;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+}
+
