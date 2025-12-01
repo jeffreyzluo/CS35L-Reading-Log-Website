@@ -104,7 +104,7 @@ function Post({title, author, isbn}) {
                   color: star <= rating ? "#FFD700" : "#ccc" // Highlight selected stars
                 }}
               >
-              *
+              ★
               </span>
             ))}
           </div>
