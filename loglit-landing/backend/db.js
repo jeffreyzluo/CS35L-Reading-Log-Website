@@ -42,7 +42,7 @@ async function withTransaction(callback) {
 const getUserByEmail = async (email) => {
 	try {
 		const result = await pool.query(
-			'SELECT id, username, email, password_hash FROM users WHERE email = $1',
+			'SELECT username, email, password_hash FROM users WHERE email = $1',
 			[email]
 		);
 		return result.rows[0] || null;
@@ -55,7 +55,7 @@ const getUserByEmail = async (email) => {
 const newUser = async (username, email, passwordHash) => {
 	try {
 		const userCheck = await pool.query(
-			'SELECT id, username, email FROM users WHERE username = $1 OR email = $2',
+			'SELECT username, email FROM users WHERE username = $1 OR email = $2',
 			[username, email]
 		);
 
@@ -66,7 +66,7 @@ const newUser = async (username, email, passwordHash) => {
 		}
 
 		const result = await pool.query(
-			'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email',
+			'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING username, email',
 			[username, email, passwordHash]
 		);
 

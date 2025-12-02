@@ -5,18 +5,9 @@ CREATE TABLE users (
     date_joined   TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE books (
-    book_id     UUID PRIMARY KEY,
-    title       TEXT NOT NULL,
-    author      TEXT NOT NULL,
-    published   DATE,
-    isbn        TEXT,
-    UNIQUE (isbn)
-);
-
 CREATE TABLE user_books (
     username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,   
-    book_id     UUID REFERENCES books(book_id) ON DELETE CASCADE,
+    book_id     UUID,
     rating      INT,
     review      TEXT,
     status      TEXT,

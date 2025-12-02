@@ -1,5 +1,5 @@
 import { withTransaction } from './db.js';
-import { Pool } from './db.js';
+import { pool } from './db.js';
 import bcrypt from 'bcrypt';
 
 export async function newUser(username, email, password) {

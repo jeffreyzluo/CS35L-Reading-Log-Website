@@ -5,6 +5,7 @@ import Username from "./Username.js";
 import ProfilePic from './ProfilePic.js';
 import Post from "./Post.js";
 import SharedPosts from "./SharedPosts.js";
+import ProfileRecommendation from './ProfileRecommendation';
 
 function Profile() {
   return (
@@ -25,6 +26,8 @@ function Profile() {
           {/* Bio Section */}
           <Bio/>
 
+          {/* Recommendation button / area */}
+          <ProfileRecommendation />
         </div>
       </div>
         <div className="post-main">

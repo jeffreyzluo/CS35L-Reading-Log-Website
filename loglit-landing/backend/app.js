@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 import { newUser, getUserByEmail } from './db.js';
 import { addBookToUser, retrieveBook, deleteUserBook } from './book_user.js';
 import searchRoute from './search/searchRoute.js';
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -144,10 +145,10 @@ app.post('/api/auth/google', async (req, res) => {
       const randomPassword = crypto.randomBytes(16).toString('hex');
       const passwordHash = await bcrypt.hash(randomPassword, 10);
       const created = await newUser(username, email, passwordHash);
-      user = { id: created.id, username: created.username, email: created.email };
+      user = { username: created.username, email: created.email };
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ username: user.username, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -198,6 +199,36 @@ app.get('/api/user_books', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Error adding book:", err); // optional logging
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Generate a single recommended book title based on user's books using Google Generative API
+app.post('/api/recommendation', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const books = await retrieveBook(username);
+
+    const API_KEY = process.env.GEMINI_API_KEY;
+    const MODEL = 'gemini-2.5-flash';
+    if (!API_KEY) return res.status(500).json({ error: 'Missing GOOGLE_API_KEY on server' });
+
+    const promptText = `You are a helpful book recommender. Given the following book titles a user has read: Charlotte's Web. Please recommend exactly one book title the user is likely to enjoy next. Return only the book title, no explanation.`;
+
+    const ai = new GoogleGenAI({});
+
+    const resp = await ai.models.generateContent({
+      model: MODEL,
+      contents: promptText,
+    });
+    console.log(resp.text);
+
+    const recommendation = resp.text;
+    if (!recommendation) return res.status(500).json({ error: 'No recommendation returned', raw: data });
+
+    return res.json({ recommendation });
+  } catch (err) {
+    console.error('Recommendation error', err);
+    return res.status(500).json({ error: err.message });
   }
 });
 app.delete('/api/books/:bookId', authMiddleware, async (req, res) => {
