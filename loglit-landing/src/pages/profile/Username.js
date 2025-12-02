@@ -71,7 +71,7 @@ function Username( {username: initialUsername} ) {
       <input
         type="text"
         value={username}
-        onChange={handleChange}
+        onChange={usernameChange}
         placeholder="Enter your username"
         className="username-input"
       />
