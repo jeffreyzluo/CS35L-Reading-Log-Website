@@ -1,33 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
-function Username( {username: initialUsername} ) {
+function Username( {username: initialUsername, canEdit} ) {
 	// Username feature state
-	const [username, setUser] = useState('');
+	const [username, setUser] = useState(initialUsername || '');
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
 	// Fetch username on component mount
-	useEffect(() => {
-		const fetchUsername = async () => {
-			try {
-				const response = await fetch('http://localhost:3001/api/protected', {
-					method: 'GET',
-					credentials: 'include', // send the JWT cookie
-				});
-				
-				if (!response.ok) {
-					throw new Error('Failed to fetch username');
-				}
-				
-				const data = await response.json();
-				setUser(data.username);
-			} catch (err) {
-				console.error('Error fetching username:', err);
-			}
-		};
-
-		fetchUsername();
-	}, []);
+  useEffect(() => {
+    setUser(initialUsername || '');
+  }, [initialUsername]);
 
 	// --- Username Handlers ---
 	const usernameChange = (event) => setUser(event.target.value);
@@ -66,7 +48,7 @@ function Username( {username: initialUsername} ) {
     setIsEditingUsername(!isEditingUsername);
   };
 
-  const usernameSection = isEditingUsername ? (
+  const usernameSection = isEditingUsername && canEdit? (
     <div className="username-edit">
       <input
         type="text"
@@ -86,9 +68,11 @@ function Username( {username: initialUsername} ) {
   ) : (
     <div className="username-display">
       <h2>{username || 'Anonymous User'}</h2>
-      <button onClick={toggleEditingUsername} className="edit-button">
-        Edit
-      </button>
+      {canEdit && (
+        <button onClick={toggleEditingUsername} className="edit-button">
+          Edit
+        </button>
+      )}
     </div>
   );
 

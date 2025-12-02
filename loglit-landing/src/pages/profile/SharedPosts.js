@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 
-function SharedPosts() {
+function SharedPosts({ username: profileUsername, canEdit }) {
   const [books, setBooks] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState(null);
 
   useEffect(() => {
+    if (!profileUsername) return;
+
     const fetchBooks = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/user_books', {
+        const response = await fetch(`http://localhost:3001/api/user_books/${profileUsername}`, {
           method: 'GET',
           credentials: 'include',
         });
@@ -48,7 +50,7 @@ function SharedPosts() {
     };
   
     fetchBooks();
-  }, []);
+  }, [profileUsername]);
 
   const handleRecommendClick = async () => {
     setRecError(null);
@@ -134,9 +136,11 @@ function SharedPosts() {
           <div>{post.status}</div>
           <div>{post.rating}</div>
           <div>{post.review}</div>
-          <button className="deletePost" onClick={() => handleDeleteClick(post.book_id)}>
-            Delete
-          </button>
+          {canEdit && (
+            <button className="deletePost" onClick={() => handleDeleteClick(post.book_id)}>
+              Delete
+            </button>
+          )}
         </li>
         ))}
       </ul>

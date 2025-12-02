@@ -6,7 +6,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import https from 'https';
 import crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
 import { newUser, getUserByEmail, pool } from './db.js';
 import { addBookToUser, retrieveBook, deleteUserBook } from './book_user.js';
@@ -192,9 +191,9 @@ app.post('/api/books/add', authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get('/api/user_books', authMiddleware, async (req, res) => {
+app.get('/api/user_books/:username', async (req, res) => {
   try {
-      const username = req.user.username;
+      const username = req.params.username;
       const books = await retrieveBook(username);
       res.json(books);
   } catch (err) {
@@ -202,6 +201,17 @@ app.get('/api/user_books', authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/api/users/:username', async (req, res) => {
+  const { username } = req.params;              // <-- use URL param
+  const user = await getUserDetails(username);  // <-- fetch by requested username
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  res.json({
+    username: user.username,
+    description: user.description || '',
+    // add other public info here
+  });
+});
+
 
 // Generate a single recommended book title based on user's books using Google Generative API
 app.post('/api/recommendation', authMiddleware, async (req, res) => {
@@ -287,9 +297,9 @@ app.put('/api/user/username', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/user/description', authMiddleware, async (req, res) => {
+app.get('/api/user/:username/description', async (req, res) => {
   try {
-    const username = req.user.username;
+    const username = req.params.username;
     const userDetails = await getUserDetails(username);
     console.log('GET description - username:', username, 'userDetails:', userDetails);
     res.status(200).json({ description: userDetails?.description || '' });
@@ -314,9 +324,9 @@ app.put('/api/user/description', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/user/followers', authMiddleware, async (req, res) => {
+app.get('/api/user/:username/followers', async (req, res) => {
   try {
-    const username = req.user.username;
+    const username = req.params.username;
     const followers = await getFollowers(username);
     res.status(200).json({ followers: followers.map(f => f.user_username), count: followers.length });
   } catch (err) {
@@ -325,9 +335,9 @@ app.get('/api/user/followers', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/user/following', authMiddleware, async (req, res) => {
+app.get('/api/user/:username/following', async (req, res) => {
   try {
-    const username = req.user.username;
+    const username = req.params.username;
     const following = await getFollowing(username);
     res.status(200).json({ following: following.map(f => f.friend_username), count: following.length });
   } catch (err) {

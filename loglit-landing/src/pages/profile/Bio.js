@@ -1,38 +1,25 @@
 import React, { useState, useEffect } from 'react';
 
-function Bio() {
+function Bio( {username: profileUsername, canEdit} ) {
 	// Bio feature state
 	const [bio, setBio] = useState('');
 	const [isEditingBio, setIsEditingBio] = useState(false); // Start in view mode
-	const [username, setUsername] = useState('');
 	const [isLoading, setIsLoading] = useState(true);
 
-	// Fetch username and bio on component mount
+	// Fetch bio on component mount
 	useEffect(() => {
+    if (!profileUsername) return;
+
 		const fetchUserData = async () => {
 			try {
-				// Fetch username
-				const usernameResponse = await fetch('http://localhost:3001/api/protected', {
-					method: 'GET',
-					credentials: 'include',
-				});
-				
-				if (!usernameResponse.ok) {
-					throw new Error('Failed to fetch username');
-				}
-				
-				const usernameData = await usernameResponse.json();
-				setUsername(usernameData.username);
-
-				// Fetch description/bio
-				const descriptionResponse = await fetch('http://localhost:3001/api/user/description', {
+				// Fetch description
+				const descriptionResponse = await fetch(`http://localhost:3001/api/user/${profileUsername}/description`, {
 					method: 'GET',
 					credentials: 'include',
 				});
 				
 				if (descriptionResponse.ok) {
 					const descriptionData = await descriptionResponse.json();
-					console.log('Fetched description:', descriptionData); // Debug log
 					setBio(descriptionData.description || '');
 				} else {
 					const errorData = await descriptionResponse.json().catch(() => ({}));
@@ -46,11 +33,11 @@ function Bio() {
 		};
 
 		fetchUserData();
-	}, []);
+	}, [profileUsername]);
 
 	// --- Bio Handlers ---
 	const handleSaveClick = async () => {
-		if (!username) return;
+		if (!profileUsername) return;
 		
 		try {
 			const response = await fetch('http://localhost:3001/api/user/description', {
@@ -66,7 +53,6 @@ function Bio() {
 			}
 
 			const result = await response.json();
-			console.log('Saved description result:', result); // Debug log
 			// Update local state with the saved description
 			setBio(result.description || bio);
 			setIsEditingBio(false);
@@ -90,7 +76,7 @@ function Bio() {
 
 	return (
 		<div className="bio-section">
-      {isEditingBio ? (
+      {canEdit && isEditingBio ? (
         <>
           <input
             className="input-bio"
@@ -105,10 +91,12 @@ function Bio() {
         </>
       ) : (
         <>
-          <p>{bio || 'No bio yet.'}</p>
-          <button className="bio-button" onClick={handleUpdateClick}>
-            Update
-          </button>
+          <p>{bio || "No bio yet."}</p>
+          {canEdit && (
+            <button className="bio-button" onClick={handleUpdateClick}>
+              Update
+            </button>
+          )}
         </>
       )}
     	</div>

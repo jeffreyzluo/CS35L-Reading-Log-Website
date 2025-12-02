@@ -1,8 +1,7 @@
 // Import Elements
 import "./Profile.css";
 import { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AuthContext } from '../../AuthContext';
 import Bio from "./Bio.js";
 import Username from "./Username.js";
@@ -10,10 +9,12 @@ import SharedPosts from "./SharedPosts.js";
 import DisplayFriends from "./displayFriends.js";
 
 function Profile() {
+  const [profileUser, setProfileUser] = useState({});
+  const [loggedInUser, setLoggedInUser] = useState({});
   const navigate = useNavigate();
   const { token } = useContext(AuthContext);
   const { username: paramUsername } = useParams();
-  const [username, setUsername] = useState('');
+
 
   useEffect(() => {
     if (!token) {
@@ -21,15 +22,23 @@ function Profile() {
       return;
     }
 
-    // Fetch username from session
+    // Fetch logged-in user
     fetch('/api/me', { credentials: 'include' })
       .then(res => res.json())
-      .then(data => setUsername(data.username)) // just grab username
-      .catch(err => console.error('Failed to fetch user:', err));
-  }, [token, navigate]);
+      .then(data => setLoggedInUser(data))
+      .catch(err => console.error('Failed to fetch logged-in user:', err));
 
-  const profileUsername = paramUsername || username;
+      setProfileUser({});
 
+    // Fetch profile user
+    const url = paramUsername ? `/api/users/${paramUsername}` : '/api/me';
+    fetch(url, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setProfileUser(data))
+      .catch(err => console.error('Failed to fetch profile:', err));
+  }, [token, paramUsername, navigate]);
+
+  const canEdit = profileUser.username && loggedInUser.username && profileUser.username === loggedInUser.username;
 
   return (
     <div
@@ -46,10 +55,10 @@ function Profile() {
         <div className="profile-content" style={{ width: '100%' }}>
 
           {/* Username section */}
-          <Username username={profileUsername} />
+          <Username username={profileUser.username} canEdit={canEdit} />
 
           {/* Bio Section */}
-          <Bio/>
+          <Bio username={profileUser.username} canEdit={canEdit} />
 
           {/* Recommendation is available in SharedPosts list below */}
         </div>
@@ -57,11 +66,11 @@ function Profile() {
       
       {/* Friends Section */}
       <div className="friends-main">
-        <DisplayFriends/>
+        <DisplayFriends username={profileUser.username} canEdit={canEdit} />
       </div>
       
         <div className="post-main">
-          <SharedPosts/>
+          <SharedPosts username={profileUser.username} canEdit={canEdit} />
         </div>
     </div>
   );

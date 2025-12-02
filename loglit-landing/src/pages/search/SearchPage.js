@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import SearchBar from './SearchBar';
 import './Search.css';
 import '../profile/Profile.css';
-import Post from '../profile/Post';
+import Post from './Post';
 
 
 function Search() {
