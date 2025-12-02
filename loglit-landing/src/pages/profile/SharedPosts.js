@@ -8,14 +8,37 @@ function SharedPosts() {
       try {
         const response = await fetch('http://localhost:3001/api/user_books', {
           method: 'GET',
-          credentials: 'include', // sends JWT cookie
+          credentials: 'include',
         });
-        const data = await response.json();
   
+        const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Failed to fetch books');
   
-        console.log('Fetched books:', data);  // <-- sanity check in browser console
-        setBooks(data);                        // <-- save to state
+        // Enrich each book with Google Books info
+        const enriched = await Promise.all(
+          data.map(async (book) => {
+            try {
+              const gbRes = await fetch(
+                `https://www.googleapis.com/books/v1/volumes/${book.book_id}`
+              );
+              const gbData = await gbRes.json();
+  
+              return {
+                ...book,
+                title: gbData.volumeInfo?.title || 'Unknown title',
+                author: gbData.volumeInfo?.authors?.[0] || 'Unknown author',
+              };
+            } catch {
+              return {
+                ...book,
+                title: 'Unknown title',
+                author: 'Unknown author',
+              };
+            }
+          })
+        );
+  
+        setBooks(enriched);
       } catch (err) {
         console.error('Error fetching books:', err);
       }
@@ -23,6 +46,7 @@ function SharedPosts() {
   
     fetchBooks();
   }, []);
+  
 
   const handleDeleteClick = async (bookId) => {
     try {
@@ -55,7 +79,7 @@ function SharedPosts() {
       <ul className="sharedPost">
         {books.map((post) => (
         <li key={post.book_id}>
-          <div>{post.book_id}</div>
+          <div>{post.title}</div>
           <div>{post.author || 'Unknown author'}</div>
           <div>{new Date(post.added_at).toLocaleString()}</div>
           <div>{post.status}</div>
