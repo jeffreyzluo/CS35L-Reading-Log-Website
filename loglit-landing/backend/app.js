@@ -170,8 +170,8 @@ app.get('/api/protected', authMiddleware, (req, res) => {
 // DEBUGGING: Get current user info
 
 app.get('/api/me', authMiddleware, (req, res) => {
-  console.log('User in session:', req.user);  // <-- prints to your terminal
-  res.json(req.user);                         // <-- sends JSON back to frontend
+  if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
+  res.json({ username: req.user.username });
 });
 
 

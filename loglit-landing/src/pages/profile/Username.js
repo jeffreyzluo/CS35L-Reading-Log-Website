@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function Username() {
+function Username( {username: initialUsername} ) {
 	// Username feature state
-	const [username, setUser] = useState('');
-  const [isEditingUsername, setIsEditingUsername] = useState(true);
+	const [username, setUsername] = useState(initialUsername || '');
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
   
 	// --- Username Handlers ---
-	const usernameChange = (event) => setUser(event.target.value);
+  const handleChange = (e) => setUsername(e.target.value);
   const toggleEditingUsername = () => setIsEditingUsername(!isEditingUsername);
+
+  useEffect(() => {
+    setUsername(initialUsername || '');
+  }, [initialUsername]);
+
 
   const usernameSection = isEditingUsername ? (
     <div className="username-edit">
       <input
         type="text"
         value={username}
-        onChange={usernameChange}
+        onChange={handleChange}
         placeholder="Enter your username"
         className="username-input"
       />
