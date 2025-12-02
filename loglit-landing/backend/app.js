@@ -8,8 +8,9 @@ import https from 'https';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
-import { newUser, getUserByEmail } from './db.js';
+import { newUser, getUserByEmail, pool } from './db.js';
 import { addBookToUser, retrieveBook, deleteUserBook } from './book_user.js';
+import { updateDescription, updateUsername, getUserDetails, getFollowers, getFollowing, addFriend } from './user.js';
 import searchRoute from './search/searchRoute.js';
 import { GoogleGenAI } from "@google/genai";
 
@@ -272,6 +273,130 @@ app.delete('/api/books/:bookId', authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.put('/api/user/username', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { newUsername } = req.body;
+
+    const result = await updateUsername(username, newUsername);
+    res.status(200).json(result);
+  }catch (err) {
+    console.error("Error updating username:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/user/description', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const userDetails = await getUserDetails(username);
+    console.log('GET description - username:', username, 'userDetails:', userDetails);
+    res.status(200).json({ description: userDetails?.description || '' });
+  } catch (err) {
+    console.error("Error fetching description:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/user/description', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const { description } = req.body;
+    console.log('PUT description - username:', username, 'description:', description);
+
+    const result = await updateDescription(username, description);
+    console.log('PUT description - result:', result);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error updating description:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/user/followers', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const followers = await getFollowers(username);
+    res.status(200).json({ followers: followers.map(f => f.user_username), count: followers.length });
+  } catch (err) {
+    console.error("Error fetching followers:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/user/following', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    const following = await getFollowing(username);
+    res.status(200).json({ following: following.map(f => f.friend_username), count: following.length });
+  } catch (err) {
+    console.error("Error fetching following:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Search for users by username (for autocomplete)
+app.get('/api/users/search', authMiddleware, async (req, res) => {
+  try {
+    const { q } = req.query; // query parameter for search term
+    if (!q || q.trim() === '') {
+      return res.status(200).json({ users: [] });
+    }
+
+    const result = await pool.query(
+      'SELECT username FROM users WHERE username ILIKE $1 LIMIT 10',
+      [`%${q.trim()}%`]
+    );
+
+    res.status(200).json({ users: result.rows.map(row => row.username) });
+  } catch (err) {
+    console.error("Error searching users:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add a friend
+app.post('/api/user/friends', authMiddleware, async (req, res) => {
+  try {
+    console.log('POST /api/user/friends - Request received');
+    const username = req.user.username;
+    const { friendUsername } = req.body;
+    console.log('Adding friend:', { username, friendUsername });
+
+    if (!friendUsername || friendUsername.trim() === '') {
+      return res.status(400).json({ error: 'Friend username is required' });
+    }
+
+    if (friendUsername === username) {
+      return res.status(400).json({ error: 'Cannot add yourself as a friend' });
+    }
+
+    // Check if user exists
+    const friendDetails = await getUserDetails(friendUsername.trim());
+    if (!friendDetails) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if already following
+    const following = await getFollowing(username);
+    if (following.some(f => f.friend_username === friendUsername.trim())) {
+      return res.status(409).json({ error: 'Already following this user' });
+    }
+
+    const result = await addFriend(username, friendUsername.trim());
+    res.status(200).json({ message: 'Friend added successfully', friend: result });
+  } catch (err) {
+    console.error("Error adding friend:", err);
+    // Handle unique constraint violation (already friends)
+    if (err.code === '23505') {
+      res.status(409).json({ error: 'Already following this user' });
+    } else {
+      res.status(500).json({ error: err.message });
+    }
+  }
+});
+
 
 // Error handler
 app.use((err, req, res, next) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function Post({title, author, volumeId}) {
   // Post feature state
@@ -6,7 +6,44 @@ function Post({title, author, volumeId}) {
   const [review, setReview] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
   const [rating, setRating] = useState(0);
+  
+  // Followers/Following state
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
+
+  // Fetch followers and following counts on component mount
+  useEffect(() => {
+    const fetchFollowData = async () => {
+      try {
+        // Fetch followers
+        const followersResponse = await fetch('http://localhost:3001/api/user/followers', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (followersResponse.ok) {
+          const followersData = await followersResponse.json();
+          setFollowersCount(followersData.count || 0);
+        }
+
+        // Fetch following
+        const followingResponse = await fetch('http://localhost:3001/api/user/following', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (followingResponse.ok) {
+          const followingData = await followingResponse.json();
+          setFollowingCount(followingData.count || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching follow data:', err);
+      }
+    };
+
+    fetchFollowData();
+  }, []);
 
   // --- Post Handlers ---
   const handleReviewClick = () => setIsReviewing(true);
@@ -63,6 +100,18 @@ function Post({title, author, volumeId}) {
 
   return(
     <div className="post-Section">
+      {/* Followers/Following Display */}
+      <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
+        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+          <div>
+            <strong>{followersCount}</strong> Followers
+          </div>
+          <div>
+            <strong>{followingCount}</strong> Following
+          </div>
+        </div>
+      </div>
+
       {/* Input Post */}
       <div className="post-Container">
         

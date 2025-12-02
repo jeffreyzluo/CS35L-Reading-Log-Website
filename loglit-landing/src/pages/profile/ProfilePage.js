@@ -7,6 +7,7 @@ import { AuthContext } from '../../AuthContext';
 import Bio from "./Bio.js";
 import Username from "./Username.js";
 import SharedPosts from "./SharedPosts.js";
+import DisplayFriends from "./displayFriends.js";
 
 function Profile() {
   const navigate = useNavigate();
@@ -53,6 +54,12 @@ function Profile() {
           {/* Recommendation is available in SharedPosts list below */}
         </div>
       </div>
+      
+      {/* Friends Section */}
+      <div className="friends-main">
+        <DisplayFriends/>
+      </div>
+      
         <div className="post-main">
           <SharedPosts/>
         </div>
