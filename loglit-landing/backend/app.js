@@ -206,26 +206,55 @@ app.get('/api/user_books', authMiddleware, async (req, res) => {
 app.post('/api/recommendation', authMiddleware, async (req, res) => {
   try {
     const username = req.user.username;
+    // Prefer titles provided in the POST body (client-side enriched titles)
+    let titles = Array.isArray(req.body && req.body.titles) ? req.body.titles.filter(Boolean) : [];
+
+    // If no titles in body, fall back to retrieving user's books from DB
     const books = await retrieveBook(username);
+    if ((!titles || titles.length === 0) && Array.isArray(books) && books.length > 0) {
+      // Try to turn book.book_id (Google volume IDs) into titles by querying Google Books
+      const fetchedTitles = [];
+      for (let i = 0; i < Math.min(20, books.length); i++) {
+        const b = books[i];
+        if (!b || !b.book_id) continue;
+        try {
+          const gbRes = await new Promise((resolve, reject) => {
+            https.get(`https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(b.book_id)}`, (resp) => {
+              let data = '';
+              resp.on('data', chunk => { data += chunk; });
+              resp.on('end', () => resolve({ ok: true, text: data }));
+            }).on('error', (err) => reject(err));
+          });
+          const gbData = JSON.parse(gbRes.text);
+          const t = gbData.volumeInfo && gbData.volumeInfo.title;
+          if (t) fetchedTitles.push(t);
+        } catch (e) {
+          // ignore per-book fetch errors
+        }
+      }
+      titles = fetchedTitles;
+    }
+
+    if (!titles || titles.length === 0) {
+      return res.status(400).json({ error: 'No book titles available to generate recommendation' });
+    }
+
+    // Build a concise prompt using up to 20 titles and limited characters
+    const safeTitles = titles.slice(0, 20).map(t => String(t).replace(/\s+/g, ' ').trim());
+    const joined = safeTitles.join('; ');
+    const truncated = joined.length > 1000 ? joined.slice(0, 1000) + '...' : joined;
 
     const API_KEY = process.env.GEMINI_API_KEY;
     const MODEL = 'gemini-2.5-flash';
-    if (!API_KEY) return res.status(500).json({ error: 'Missing GOOGLE_API_KEY on server' });
+    if (!API_KEY) return res.status(500).json({ error: 'Missing GEMINI_API_KEY on server' });
 
-    const promptText = `You are a helpful book recommender. Given the following book titles a user has read: Charlotte's Web. Please recommend exactly one book title the user is likely to enjoy next. Return only the book title, no explanation.`;
+    const promptText = `You are a helpful book recommender. Given the following book titles a user has read: ${truncated}. Please recommend exactly one book title the user is likely to enjoy next. Return only the book title, no explanation.`;
 
     const ai = new GoogleGenAI({});
-
-    const resp = await ai.models.generateContent({
-      model: MODEL,
-      contents: promptText,
-    });
-    console.log(resp.text);
-
-    const recommendation = resp.text;
-    if (!recommendation) return res.status(500).json({ error: 'No recommendation returned', raw: data });
-
-    return res.json({ recommendation });
+    const resp = await ai.models.generateContent({ model: MODEL, contents: promptText });
+    const recommendation = resp && resp.text;
+    if (!recommendation) return res.status(500).json({ error: 'No recommendation returned', raw: resp });
+    return res.json({ recommendation: String(recommendation).trim() });
   } catch (err) {
     console.error('Recommendation error', err);
     return res.status(500).json({ error: err.message });

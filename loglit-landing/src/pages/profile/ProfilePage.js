@@ -5,9 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../AuthContext';
 import Bio from "./Bio.js";
 import Username from "./Username.js";
-import ProfilePic from './ProfilePic.js';
 import SharedPosts from "./SharedPosts.js";
-import ProfileRecommendation from './ProfileRecommendation';
 
 function Profile() {
   const navigate = useNavigate();
@@ -19,16 +17,18 @@ function Profile() {
     }
   }, [token, navigate]);
   return (
-    <div className="profile-page">
+    <div
+      className="profile-page"
+      style={{
+        ['--profile-bg']: `url(${process.env.PUBLIC_URL || ''}/home.jpg)`
+      }}
+    >
       <div className="profile-header">
         <h1 className="profile-title">My Profile</h1>
       </div>
       <div className="profile-main">
-        {/* Profile picture section */}
-        <ProfilePic/>
-
-        {/* Right-side content: username + bio */}
-        <div className="profile-content">
+        {/* Main content: username + bio */}
+        <div className="profile-content" style={{ width: '100%' }}>
 
           {/* Username section */}
           <Username/>
@@ -36,8 +36,7 @@ function Profile() {
           {/* Bio Section */}
           <Bio/>
 
-          {/* Recommendation button / area */}
-          <ProfileRecommendation />
+          {/* Recommendation is available in SharedPosts list below */}
         </div>
       </div>
         <div className="post-main">
