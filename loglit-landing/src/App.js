@@ -1,22 +1,35 @@
 import "./App.css";
 import { useNavigate, Routes, Route } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from './AuthContext';
 import Login from "./pages/Login.js";
 import Profile from "./pages/profile/ProfilePage.js";
 import Search from "./pages/search/SearchPage.js";
+import HeroImage from './components/HeroImage';
 
 function Header() {
   const navigate = useNavigate();
+  const { token, signOut } = useContext(AuthContext);
   const handleButtonClick = (destination) => {
-        navigate(destination);
-      };
+    navigate(destination);
+  };
+  const handleSignOut = () => {
+    signOut();
+    navigate('/login');
+  };
   return (
     <header className="header">
       <div className="container">
         <h1 className="logo" onClick={() => handleButtonClick('/')}>LogLit</h1>
         <nav>
-          <button className="signup-button" onClick={() => handleButtonClick('/login')}>Login/Sign Up</button>
+          {!token && (
+            <button className="signup-button" onClick={() => handleButtonClick('/login')}>Login/Sign Up</button>
+          )}
+          {token && (
+            <button className="signup-button" onClick={handleSignOut}>Sign Out</button>
+          )}
           <button className="profile-button" onClick={() => handleButtonClick('/profile')}>Profile</button>
-          <button className="search-button" onClick={() => handleButtonClick('/search')}>Search</button>                
+          <button className="search-button" onClick={() => handleButtonClick('/search')}>Search</button>
         </nav>
       </div>
     </header>
@@ -25,8 +38,8 @@ function Header() {
 
 function Hero() {
   const navigate = useNavigate();
+  const { token } = useContext(AuthContext);
   const handleGetStarted = () => {
-    const token = localStorage.getItem('authToken');
     if (token) {
       navigate('/search');
     } else {
@@ -52,12 +65,14 @@ function Home() {
   return (
     <div className="App">
       <Hero />
+      <HeroImage />
     </div>
   );
 }
 
 function App() {
   const navigate = useNavigate();
+  const { signIn } = useContext(AuthContext);
 
   const handleLogin = async ({ email, password }) => {
     try {
@@ -75,9 +90,9 @@ function App() {
         return;
       }
 
-      // Save token and navigate to profile
+      // Save token via context and navigate to profile
       if (body.token) {
-        localStorage.setItem('authToken', body.token);
+        try { signIn(body.token); } catch (_) { try { localStorage.setItem('authToken', body.token); } catch(_){} }
         navigate('/profile');
       }
     } catch (err) {

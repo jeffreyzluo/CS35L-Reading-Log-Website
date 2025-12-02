@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './Login.css';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
 
 function Login({ onSubmit }) {
+    const navigate = useNavigate();
+    const { token, signIn } = useContext(AuthContext);
     const [isSignUp, setIsSignUp] = useState(false);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -23,6 +27,12 @@ function Login({ onSubmit }) {
     const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '706234058502-c2dk7t2rr4aod9mf5jg8essau207cnrs.apps.googleusercontent.com';
 
     useEffect(() => {
+        // If already logged in, redirect to profile
+        if (token) {
+            navigate('/profile');
+            return;
+        }
+
         // Render Google button if the library is available
         const tryRender = () => {
             if (window.google && window.google.accounts && window.google.accounts.id) {
@@ -42,9 +52,8 @@ function Login({ onSubmit }) {
                             });
                             const body = await res.json();
                             if (res.ok && body.token) {
-                                // Save token and navigate to profile
-                                try { localStorage.setItem('authToken', body.token); } catch (_) {}
-                                window.location.href = '/profile';
+                                try { signIn(body.token); } catch(_) { try { localStorage.setItem('authToken', body.token); } catch(_){} }
+                                navigate('/profile');
                             } else {
                                 setServerMessage(body.error || 'Google sign-in failed');
                             }
@@ -66,7 +75,8 @@ function Login({ onSubmit }) {
         // Try rendering shortly after mount (script is async)
         const id = setTimeout(tryRender, 500);
         return () => clearTimeout(id);
-    }, [GOOGLE_CLIENT_ID]);
+    }, [GOOGLE_CLIENT_ID, navigate, signIn, token]);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
