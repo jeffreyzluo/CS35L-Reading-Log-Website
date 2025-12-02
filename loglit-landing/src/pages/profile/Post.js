@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function Post({title, author, isbn}) {
+function Post({title, author, volumeId}) {
   // Post feature state
   const [readStatus, setReadStatus] = useState('');
   const [review, setReview] = useState('');
@@ -58,8 +58,8 @@ function Post({title, author, isbn}) {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          bookId: isbn,
-          rating: rating,        // placeholder for rating
+          book_id: volumeId,
+          rating: rating,
           review: review.trim(),
           status: readStatus,
           added_at: new Date().toISOString()

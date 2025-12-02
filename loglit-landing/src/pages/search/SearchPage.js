@@ -22,11 +22,11 @@ function Search() {
       .then(data => {
         // Map the API response
         const formattedResults = data.map(item => ({
-          name: item.title,              // title
-          authors: item.authors,         // author
-          description: item.description, // description
+          name: item.title,               // title
+          authors: item.authors,          // author
+          description: item.description,  // description
           thumbnail: item.thumbnail,      // thumbnail (optional)
-          isbn: item.isbn                 // isbn
+          volumeId: item.volumeId         // book ID
         }));
         setResults(formattedResults);
       })
@@ -52,7 +52,7 @@ function Search() {
           results.map((item, idx) => (
             <div key={idx} style={{ padding: "5px", borderBottom: "1px solid #ccc" }}>
               <h3>{item.name}</h3>
-              {item.isbn && <p>ISBN: {item.isbn}</p>}
+              {item.volumeId && <p>Volume ID: {item.volumeId}</p>}
               {item.authors && (
                 <p>
                   By: {
@@ -68,7 +68,7 @@ function Search() {
               {item.thumbnail && <img src={item.thumbnail} alt={item.name} />}
               <Post 
                 title={item.name} 
-                isbn={item.isbn}
+                volumeId={item.volumeId}
                 author={
                   Array.isArray(item.authors) 
                     ? item.authors.join(", ") 

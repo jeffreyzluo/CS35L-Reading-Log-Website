@@ -3,10 +3,9 @@
 .post-Container {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  margin-left: 20%;
-  margin-right: 20%;
-  width: 60rem;  
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
 }
 .post-Review {
   display: flex;
@@ -33,8 +32,6 @@
 }
 
 .sharedPost {
-  margin-left: 20%;
-  margin-right: 20%;
   margin-top: 2rem;
   display: flex;
   flex-direction: column;
@@ -78,8 +75,9 @@
 
 /* Page header (not the global site header) */
 .profile-header {
-  padding: 0 0 0.5rem 0;
+  padding: 0 0 0.25rem 0;
   background: transparent;
+  margin-bottom: 6px; /* reduce space between title and main content */
 }
 
 .profile-title {
@@ -90,5 +88,66 @@
   margin-left: auto;
   margin-right: auto;
   padding: 0 1rem;
+}
+
+/* Blurred background image for the profile page (uses public/home.jpg) */
+.profile-page {
+  position: relative;
+  /* Ensure background covers entire viewport and grows with content */
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.profile-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Use the CSS variable set from JS; no fallback URL to avoid webpack resolving it at build time */
+  background-image: var(--profile-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(1px) brightness(0.7);
+  transform: scale(1.03);
+  z-index: -2;
+}
+
+/* subtle light overlay so text is readable */
+.profile-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.65);
+  z-index: -1;
+}
+
+/* Align main profile content and posts with the profile title */
+.profile-main,
+.post-main {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  margin-top: 20px; /* small gap between Bio and SharedPosts */
+}
+
+.profile-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* smaller gap between title and username/bio */
+  margin-top: 0;
+}
+
+.profile-content {
+  width: 100%;
+}
+
+.username-section {
+  margin-top: 0; /* ensure username block doesn't add extra space */
+}
+
+.post-Section {
+  width: 100%;
 }
 

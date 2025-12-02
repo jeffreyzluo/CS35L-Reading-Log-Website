@@ -6,10 +6,16 @@ CREATE TABLE users (
     description   TEXT
 );
 
+<<<<<<< HEAD
 
 CREATE TABLE user_books (
     username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,   
     book_id     UUID,
+=======
+CREATE TABLE user_books (
+    username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,   
+    book_id     TEXT,
+>>>>>>> b082a8a12415a91372bf5e32cf08d042a2eebf40
     rating      INT,
     review      TEXT,
     status      TEXT,

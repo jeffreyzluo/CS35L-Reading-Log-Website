@@ -1,24 +1,35 @@
 // Import Elements
 import "./Profile.css";
+import { useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../AuthContext';
 import Bio from "./Bio.js";
 import Username from "./Username.js";
-import ProfilePic from './ProfilePic.js';
-import Post from "./Post.js";
 import SharedPosts from "./SharedPosts.js";
 import DisplayFriends from "./displayFriends.js";
 
 function Profile() {
+  const navigate = useNavigate();
+  const { token } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
   return (
-    <div className="profile-page">
+    <div
+      className="profile-page"
+      style={{
+        ['--profile-bg']: `url(${process.env.PUBLIC_URL || ''}/home.jpg)`
+      }}
+    >
       <div className="profile-header">
         <h1 className="profile-title">My Profile</h1>
       </div>
       <div className="profile-main">
-        {/* Profile picture section */}
-        <ProfilePic/>
-
-        {/* Right-side content: username + bio */}
-        <div className="profile-content">
+        {/* Main content: username + bio */}
+        <div className="profile-content" style={{ width: '100%' }}>
 
           {/* Username section */}
           <Username/>
@@ -26,6 +37,7 @@ function Profile() {
           {/* Bio Section */}
           <Bio/>
 
+          {/* Recommendation is available in SharedPosts list below */}
         </div>
       </div>
       

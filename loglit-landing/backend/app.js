@@ -12,6 +12,7 @@ import { newUser, getUserByEmail, pool } from './db.js';
 import { addBookToUser, retrieveBook, deleteUserBook } from './book_user.js';
 import { updateDescription, updateUsername, getUserDetails, getFollowers, getFollowing, addFriend } from './user.js';
 import searchRoute from './search/searchRoute.js';
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -145,10 +146,10 @@ app.post('/api/auth/google', async (req, res) => {
       const randomPassword = crypto.randomBytes(16).toString('hex');
       const passwordHash = await bcrypt.hash(randomPassword, 10);
       const created = await newUser(username, email, passwordHash);
-      user = { id: created.id, username: created.username, email: created.email };
+      user = { username: created.username, email: created.email };
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ username: user.username, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -180,15 +181,15 @@ app.use('/api/search', searchRoute);
 app.post('/api/books/add', authMiddleware, async (req, res) => {
   try {
     const username = req.user.username;   // Dynamically get username
-    const bookId = uuidv4(); // placeholder UUID
+    const bookId = req.body.book_id;
     const { rating, review, status, added_at } = req.body;
 
     const newBook = await addBookToUser(username, bookId, rating, review, status, added_at);
 
     res.status(200).json(newBook);
   } catch (err) {
-    console.error("Error adding book:", err); // optional logging
-    res.status(500).json({ error: error.message });
+    console.error("Error adding book:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 app.get('/api/user_books', authMiddleware, async (req, res) => {
@@ -197,8 +198,67 @@ app.get('/api/user_books', authMiddleware, async (req, res) => {
       const books = await retrieveBook(username);
       res.json(books);
   } catch (err) {
-    console.error("Error adding book:", err); // optional logging
-    res.status(500).json({ error: error.message });
+    console.error("Error adding book:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Generate a single recommended book title based on user's books using Google Generative API
+app.post('/api/recommendation', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    // Prefer titles provided in the POST body (client-side enriched titles)
+    let titles = Array.isArray(req.body && req.body.titles) ? req.body.titles.filter(Boolean) : [];
+
+    // If no titles in body, fall back to retrieving user's books from DB
+    const books = await retrieveBook(username);
+    if ((!titles || titles.length === 0) && Array.isArray(books) && books.length > 0) {
+      // Try to turn book.book_id (Google volume IDs) into titles by querying Google Books
+      const fetchedTitles = [];
+      for (let i = 0; i < Math.min(20, books.length); i++) {
+        const b = books[i];
+        if (!b || !b.book_id) continue;
+        try {
+          const gbRes = await new Promise((resolve, reject) => {
+            https.get(`https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(b.book_id)}`, (resp) => {
+              let data = '';
+              resp.on('data', chunk => { data += chunk; });
+              resp.on('end', () => resolve({ ok: true, text: data }));
+            }).on('error', (err) => reject(err));
+          });
+          const gbData = JSON.parse(gbRes.text);
+          const t = gbData.volumeInfo && gbData.volumeInfo.title;
+          if (t) fetchedTitles.push(t);
+        } catch (e) {
+          // ignore per-book fetch errors
+        }
+      }
+      titles = fetchedTitles;
+    }
+
+    if (!titles || titles.length === 0) {
+      return res.status(400).json({ error: 'No book titles available to generate recommendation' });
+    }
+
+    // Build a concise prompt using up to 20 titles and limited characters
+    const safeTitles = titles.slice(0, 20).map(t => String(t).replace(/\s+/g, ' ').trim());
+    const joined = safeTitles.join('; ');
+    const truncated = joined.length > 1000 ? joined.slice(0, 1000) + '...' : joined;
+
+    const API_KEY = process.env.GEMINI_API_KEY;
+    const MODEL = 'gemini-2.5-flash';
+    if (!API_KEY) return res.status(500).json({ error: 'Missing GEMINI_API_KEY on server' });
+
+    const promptText = `You are a helpful book recommender. Given the following book titles a user has read: ${truncated}. Please recommend exactly one book title the user is likely to enjoy next. Return only the book title, no explanation.`;
+
+    const ai = new GoogleGenAI({});
+    const resp = await ai.models.generateContent({ model: MODEL, contents: promptText });
+    const recommendation = resp && resp.text;
+    if (!recommendation) return res.status(500).json({ error: 'No recommendation returned', raw: resp });
+    return res.json({ recommendation: String(recommendation).trim() });
+  } catch (err) {
+    console.error('Recommendation error', err);
+    return res.status(500).json({ error: err.message });
   }
 });
 app.delete('/api/books/:bookId', authMiddleware, async (req, res) => {
