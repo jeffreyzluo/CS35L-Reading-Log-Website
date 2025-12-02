@@ -5,6 +5,7 @@ import Username from "./Username.js";
 import ProfilePic from './ProfilePic.js';
 import Post from "./Post.js";
 import SharedPosts from "./SharedPosts.js";
+import DisplayFriends from "./displayFriends.js";
 
 function Profile() {
   return (
@@ -27,6 +28,12 @@ function Profile() {
 
         </div>
       </div>
+      
+      {/* Friends Section */}
+      <div className="friends-main">
+        <DisplayFriends/>
+      </div>
+      
         <div className="post-main">
           <SharedPosts/>
         </div>

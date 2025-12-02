@@ -2,21 +2,14 @@ CREATE TABLE users (
     username      VARCHAR(50) PRIMARY KEY,
     email         VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    date_joined   TIMESTAMP NOT NULL DEFAULT NOW()
+    date_joined   TIMESTAMP NOT NULL DEFAULT NOW(),
+    description   TEXT
 );
 
-CREATE TABLE books (
-    book_id     UUID PRIMARY KEY,
-    title       TEXT NOT NULL,
-    author      TEXT NOT NULL,
-    published   DATE,
-    isbn        TEXT,
-    UNIQUE (isbn)
-);
 
 CREATE TABLE user_books (
-    username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,   
-    book_id     UUID REFERENCES books(book_id) ON DELETE CASCADE,
+    username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,   
+    book_id     UUID,
     rating      INT,
     review      TEXT,
     status      TEXT,
@@ -25,8 +18,7 @@ CREATE TABLE user_books (
 );
 
 CREATE TABLE user_friends (
-    user_username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,
-    friend_username  VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,
-
+    user_username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,
+    friend_username  VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (user_username, friend_username)
 );

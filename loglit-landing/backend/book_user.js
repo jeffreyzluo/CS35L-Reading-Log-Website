@@ -4,7 +4,7 @@ import { withTransaction } from './db.js';
 /*
 CREATE TABLE user_books (
     username    VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,   
-    book_id     UUID REFERENCES books(book_id) ON DELETE CASCADE,
+    book_id     UUID,
     rating      INT,
     review      TEXT,
     status      TEXT,
