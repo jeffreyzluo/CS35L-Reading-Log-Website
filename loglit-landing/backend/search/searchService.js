@@ -18,41 +18,12 @@ export async function fetchBooks(query) {
 
     // Organize results
     const results = response.data.items
-    ?.filter(book => {
-      const ids = book.volumeInfo?.industryIdentifiers;
-      if (!ids) return false; // no identifiers at all
-
-      // Keep only books with ISBN_13 or ISBN_10
-      return ids.some(id =>
-        id.type === "ISBN_13" || id.type === "ISBN_10"
-      );
-    })
-    ?.reduce((acc, book) => {
-      const ids = book.volumeInfo.industryIdentifiers;
-      const isbnObj = ids.find(id =>
-        id.type === "ISBN_13" || id.type === "ISBN_10"
-      );
-  
-      const isbn = isbnObj?.identifier;
-      if (!isbn) return acc;
-  
-      // If we've already added this ISBN, skip it
-      if (acc.isbnSet.has(isbn)) return acc;
-  
-      // Mark it as seen, and push the book
-      acc.isbnSet.add(isbn);
-      acc.list.push(book);
-      return acc;
-    }, { isbnSet: new Set(), list: [] })
-    .list
     ?.map(book => ({
       title: book.volumeInfo.title || 'No title',
       authors: book.volumeInfo.authors || 'Unknown author',
       description: book.volumeInfo.description || 'No description',
       thumbnail: book.volumeInfo.imageLinks?.thumbnail || null,
-      isbn: book.volumeInfo.industryIdentifiers?.find(
-        id => id.type === "ISBN_13" || id.type === "ISBN_10"
-      )?.identifier || null
+      volumeId: book.id || null,
     })) || [];
 
     console.log('--- BACKEND DEBUG: 4. Returning results ---');

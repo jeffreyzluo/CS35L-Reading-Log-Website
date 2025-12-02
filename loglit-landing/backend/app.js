@@ -179,15 +179,15 @@ app.use('/api/search', searchRoute);
 app.post('/api/books/add', authMiddleware, async (req, res) => {
   try {
     const username = req.user.username;   // Dynamically get username
-    const bookId = uuidv4(); // placeholder UUID
+    const bookId = req.body.book_id;
     const { rating, review, status, added_at } = req.body;
 
     const newBook = await addBookToUser(username, bookId, rating, review, status, added_at);
 
     res.status(200).json(newBook);
   } catch (err) {
-    console.error("Error adding book:", err); // optional logging
-    res.status(500).json({ error: error.message });
+    console.error("Error adding book:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 app.get('/api/user_books', authMiddleware, async (req, res) => {
@@ -196,8 +196,8 @@ app.get('/api/user_books', authMiddleware, async (req, res) => {
       const books = await retrieveBook(username);
       res.json(books);
   } catch (err) {
-    console.error("Error adding book:", err); // optional logging
-    res.status(500).json({ error: error.message });
+    console.error("Error adding book:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 app.delete('/api/books/:bookId', authMiddleware, async (req, res) => {
