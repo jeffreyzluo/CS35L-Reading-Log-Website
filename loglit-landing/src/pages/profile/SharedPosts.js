@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-function SharedPosts({ username: profileUsername, canEdit }) {
+function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
   const [books, setBooks] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
   const [recLoading, setRecLoading] = useState(false);
