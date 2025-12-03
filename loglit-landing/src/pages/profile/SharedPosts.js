@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import Notification from '../../components/Notification';
 
 function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
   const [books, setBooks] = useState([]);
+  const [sortBy, setSortBy] = useState('date'); // 'date' or 'rating'
+  const [sortDir, setSortDir] = useState('desc'); // 'desc' (default newest/highest first) or 'asc'
   const [recommendation, setRecommendation] = useState(null);
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     if (!profileUsername) return;
@@ -111,6 +115,8 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
   
       // Remove the deleted book from local state
       setBooks((prevBooks) => prevBooks.filter((book) => book.book_id !== bookId));
+      // Show transient notification (use shared Notification component)
+      setNotification({ message: 'Review removed', type: 'error' });
     } catch (err) {
       console.error('Error deleting book:', err);
       alert(err.message);
@@ -121,9 +127,29 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
   return(
     <div className="post-Section">
       <div style={{ marginBottom: 12 }}>
+        <Notification
+          message={notification?.message}
+          type={notification?.type}
+          onClose={() => setNotification(null)}
+        />
         <button className="bio-button" onClick={handleRecommendClick} disabled={recLoading}>
           {recLoading ? 'Getting recommendation...' : 'Get Recommendation'}
         </button>
+        <label style={{ marginLeft: 12, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ marginRight: 8 }}>Sort by:</span>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="date">Date added</option>
+            <option value="rating">Rating</option>
+          </select>
+          <button
+            aria-label={sortDir === 'desc' ? 'Sort descending' : 'Sort ascending'}
+            title={sortDir === 'desc' ? 'Descending' : 'Ascending'}
+            onClick={() => setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))}
+            style={{ padding: '6px 8px', borderRadius: 6, border: '1px solid #ccc', background: '#fff' }}
+          >
+            {sortDir === 'desc' ? '↓' : '↑'}
+          </button>
+        </label>
         {recError && <div style={{ color: 'crimson', marginTop: 8 }}>{recError}</div>}
         {recommendation && (
           <div className="recommendation" style={{ marginTop: 12, padding: 12, background: '#fff', borderRadius: 6 }}>

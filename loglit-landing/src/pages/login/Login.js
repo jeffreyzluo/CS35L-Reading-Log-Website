@@ -9,19 +9,62 @@ function Login({ onSubmit }) {
     const [isSignUp, setIsSignUp] = useState(false);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [isEmailValid, setIsEmailValid] = useState(null);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [serverMessage, setServerMessage] = useState(null);
 
     const validateEmail = (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+        // Basic, practical email regex (case-insensitive)
+        const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+        return emailRegex.test(String(email || ''));
     };
 
     const resetMessages = () => {
         setServerMessage(null);
         setErrors({});
+    };
+
+    const handleEmailChange = (value) => {
+        setEmail(value);
+        // Only perform live validation in Sign Up mode
+        if (!isSignUp) return;
+
+        // Live-validate on every change and show visual hint
+        if (!value || !value.trim()) {
+            setIsEmailValid(null);
+        } else {
+            const ok = validateEmail(value);
+            setIsEmailValid(ok);
+            // If it was previously an error and now valid, clear the error
+            if (errors.email && ok) {
+                setErrors((prev) => {
+                    const { email: _e, ...rest } = prev;
+                    return rest;
+                });
+            }
+        }
+    };
+
+    const handleEmailBlur = () => {
+        // Only validate on blur in Sign Up mode
+        if (!isSignUp) return;
+
+        // Validate on blur to avoid noisy inline errors while typing
+        if (!email.trim()) {
+            setIsEmailValid(false);
+            setErrors((prev) => ({ ...prev, email: 'Email is required' }));
+        } else if (!validateEmail(email)) {
+            setIsEmailValid(false);
+            setErrors((prev) => ({ ...prev, email: 'Please enter a valid email' }));
+        } else {
+            setIsEmailValid(true);
+            setErrors((prev) => {
+                const { email: _e, ...rest } = prev;
+                return rest;
+            });
+        }
     };
 
     // Google client id (provided)
@@ -96,7 +139,8 @@ function Login({ onSubmit }) {
 
         if (!email.trim()) {
             newErrors.email = 'Email is required';
-        } else if (!validateEmail(email)) {
+        } else if (isSignUp && !validateEmail(email)) {
+            // Only enforce format validation on Sign Up
             newErrors.email = 'Please enter a valid email';
         }
 
@@ -162,13 +206,20 @@ function Login({ onSubmit }) {
 
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={errors.email ? 'error' : ''}
-                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => handleEmailChange(e.target.value)}
+                                onBlur={handleEmailBlur}
+                                className={errors.email ? 'error' : (isEmailValid === true ? 'valid' : (isEmailValid === false ? 'invalid' : ''))}
+                                style={{ flex: 1 }}
+                            />
+                            <span aria-live="polite" style={{ minWidth: 20, textAlign: 'center', color: isEmailValid ? 'green' : 'crimson' }}>
+                                {isEmailValid === null ? '' : (isEmailValid ? '✓' : '✖')}
+                            </span>
+                        </div>
                         {errors.email && <span className="error-message">{errors.email}</span>}
                     </div>
 
@@ -219,7 +270,7 @@ function Login({ onSubmit }) {
                         <button
                             type="button"
                             className="link-button"
-                            onClick={() => { resetMessages(); setIsSignUp(!isSignUp); }}
+                            onClick={() => { resetMessages(); setIsEmailValid(null); setIsSignUp(!isSignUp); }}
                         >
                             {isSignUp ? 'Have an account? Login' : "Don't have an account? Sign up"}
                         </button>

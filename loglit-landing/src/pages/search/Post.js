@@ -4,12 +4,14 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../AuthContext';
+import Notification from '../../components/Notification';
 
 function Post({volumeId}) {
   const [readStatus, setReadStatus] = useState('');
   const [review, setReview] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
   const [rating, setRating] = useState(0);
+  const [notification, setNotification] = useState(null);
   
   // Followers/Following state
   // (Removed followers/following counts per design)
@@ -60,6 +62,9 @@ function Post({volumeId}) {
       }
       
       // --- Reset Inputs ---
+      // Show success notification (Notification component will auto-dismiss)
+      setNotification({ message: 'Review added', type: 'success' });
+
       setReview('');
       setReadStatus('');
       setRating(0);
@@ -71,8 +76,16 @@ function Post({volumeId}) {
 
   };
 
+  // Notification component handles its own timer and cleanup via onClose
+
   return(
     <div className="post-Section">
+      {/* Followers/Following display removed */}
+      <Notification
+        message={notification?.message}
+        type={notification?.type}
+        onClose={() => setNotification(null)}
+      />
 
       {/* Input Post */}
       <div className="post-Container">
