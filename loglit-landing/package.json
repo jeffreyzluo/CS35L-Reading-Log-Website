@@ -27,6 +27,7 @@
     "backend": "node backend/app.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:unit": "node --test backend/tests/db.test.js",
     "eject": "react-scripts eject",
     "test:cucumber": "cucumber-js backend/features"
   },

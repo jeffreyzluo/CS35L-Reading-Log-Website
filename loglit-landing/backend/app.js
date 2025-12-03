@@ -32,10 +32,19 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ error: 'Missing fields' });
   }
 
+  // Password strength validation
+  const errors = [];
+  if (String(password).length < 8) errors.push('password must be at least 8 characters');
+  if (!/[A-Z]/.test(String(password))) errors.push('password must include an uppercase letter');
+  if (!/\d/.test(String(password))) errors.push('password must include a digit');
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors.join('; ') });
+  }
+
   try {
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await newUser(username, email, passwordHash);
-    return res.status(201).json({ id: result.id });
+    return res.status(201).json({ username: result.username });
   } catch (err) {
     if (err.message && err.message.toLowerCase().includes('exists')) {
       return res.status(409).json({ error: err.message });
