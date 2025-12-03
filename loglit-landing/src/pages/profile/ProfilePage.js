@@ -11,6 +11,7 @@ import DisplayFriends from "./displayFriends.js";
 function Profile() {
   const [profileUser, setProfileUser] = useState({});
   const [loggedInUser, setLoggedInUser] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const { token } = useContext(AuthContext);
   const { username: paramUsername } = useParams();
@@ -70,7 +71,16 @@ function Profile() {
       </div>
       
         <div className="post-main">
-          <SharedPosts username={profileUser.username} canEdit={canEdit} />
+          <div style={{ marginBottom: 12 }}>
+            <input
+              aria-label="Search shared posts"
+              placeholder="Search posts by title or author"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ padding: '8px 10px', width: '100%', maxWidth: 420, borderRadius: 6, border: '1px solid #ccc' }}
+            />
+          </div>
+          <SharedPosts username={profileUser.username} canEdit={canEdit} query={searchQuery} />
         </div>
     </div>
   );

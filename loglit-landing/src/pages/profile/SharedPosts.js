@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-function SharedPosts({ username: profileUsername, canEdit }) {
+function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
   const [books, setBooks] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
   const [recLoading, setRecLoading] = useState(false);
@@ -133,21 +133,34 @@ function SharedPosts({ username: profileUsername, canEdit }) {
       {/* Shared Posts */}
       <div>
       <ul className="sharedPost">
-        {books.map((post) => (
-        <li key={post.book_id}>
-          <div>{post.title}</div>
-          <div>{post.author || 'Unknown author'}</div>
-          <div>{new Date(post.added_at).toLocaleString()}</div>
-          <div>{post.status}</div>
-          <div>{post.rating}</div>
-          <div>{post.review}</div>
-          {canEdit && (
-            <button className="deletePost" onClick={() => handleDeleteClick(post.book_id)}>
-              Delete
-            </button>
-          )}
-        </li>
-        ))}
+        {(() => {
+          const q = (query || '').trim().toLowerCase();
+          const filtered = q === '' ? books : books.filter((post) => {
+            const title = (post.title || '').toLowerCase();
+            const author = (post.author || '').toLowerCase();
+            return title.includes(q) || author.includes(q);
+          });
+
+          if (filtered.length === 0) {
+            return <li key="no-results">No posts match your search.</li>;
+          }
+
+          return filtered.map((post) => (
+            <li key={post.book_id}>
+              <div>{post.title}</div>
+              <div>{post.author || 'Unknown author'}</div>
+              <div>{new Date(post.added_at).toLocaleString()}</div>
+              <div>{post.status}</div>
+              <div>{post.rating}</div>
+              <div>{post.review}</div>
+              {canEdit && (
+                <button className="deletePost" onClick={() => handleDeleteClick(post.book_id)}>
+                  Delete
+                </button>
+              )}
+            </li>
+          ));
+        })()}
       </ul>
       </div>
     </div>
