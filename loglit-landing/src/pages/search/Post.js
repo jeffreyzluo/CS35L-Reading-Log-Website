@@ -1,7 +1,9 @@
 // Allows users to leave a review, rating, and read status for a book
 // Sends this data to the backend to be stored in the database
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../AuthContext';
 
 function Post({volumeId}) {
   const [readStatus, setReadStatus] = useState('');
@@ -9,11 +11,31 @@ function Post({volumeId}) {
   const [isReviewing, setIsReviewing] = useState(false);
   const [rating, setRating] = useState(0);
   
-  // --- Post Handlers ---
-  const handleReviewClick = () => setIsReviewing(true);
+  // Followers/Following state
+  // (Removed followers/following counts per design)
 
-  // Submit review, rating, and read status to backend
+  const navigate = useNavigate();
+  const { token } = useContext(AuthContext);
+
+  // --- Post Handlers ---
+  const handleReviewClick = () => {
+    if (!token) {
+      if (window.confirm('You must be logged in to review. Go to login page?')) {
+        navigate('/login');
+      }
+      return;
+    }
+
+    setIsReviewing(true);
+  };
+
   const handleShareClick = async () => {
+    if (!token) {
+      if (window.confirm('You must be logged in to share a review. Go to login page?')) {
+        navigate('/login');
+      }
+      return;
+    }
     if (!review.trim()) return;
 
     try {
@@ -37,7 +59,7 @@ function Post({volumeId}) {
         throw new Error(data.error || "Failed to add book");
       }
       
-      // Reset input fields after successful submission
+      // --- Reset Inputs ---
       setReview('');
       setReadStatus('');
       setRating(0);

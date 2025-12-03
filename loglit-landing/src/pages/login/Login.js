@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../AuthContext';
+import { AuthContext } from '../../AuthContext';
 
 function Login({ onSubmit }) {
     const navigate = useNavigate();

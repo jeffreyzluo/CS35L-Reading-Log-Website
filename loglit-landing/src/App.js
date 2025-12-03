@@ -2,7 +2,7 @@ import "./App.css";
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './AuthContext';
-import Login from "./pages/Login.js";
+import Login from "./pages/login/Login.js";
 import Profile from "./pages/profile/ProfilePage.js";
 import Search from "./pages/search/SearchPage.js";
 import HeroImage from './components/HeroImage';
