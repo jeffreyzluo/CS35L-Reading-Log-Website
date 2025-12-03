@@ -10,6 +10,7 @@ function Login({ onSubmit }) {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [serverMessage, setServerMessage] = useState(null);
 
@@ -77,6 +78,11 @@ function Login({ onSubmit }) {
         return () => clearTimeout(id);
     }, [GOOGLE_CLIENT_ID, navigate, signIn, token]);
 
+    // Derived password rule booleans for live UI feedback
+    const pass = String(password || '');
+    const passMin = pass.length >= 8;
+    const passUpper = /[A-Z]/.test(pass);
+    const passDigit = /\d/.test(pass);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -94,10 +100,10 @@ function Login({ onSubmit }) {
             newErrors.email = 'Please enter a valid email';
         }
 
-        if (!password.trim()) {
+        if (!pass.trim()) {
             newErrors.password = 'Password is required';
-        } else if (password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
+        } else if (!passMin || !passUpper || !passDigit) {
+            newErrors.password = 'Password must be at least 8 characters, include an uppercase letter and a digit';
         }
 
         setErrors(newErrors);
@@ -168,14 +174,41 @@ function Login({ onSubmit }) {
 
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className={errors.password ? 'error' : ''}
-                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className={errors.password ? 'error' : ''}
+                                style={{ flex: 1 }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((s) => !s)}
+                                aria-pressed={showPassword}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                style={{
+                                    padding: '6px 10px',
+                                    borderRadius: 4,
+                                    border: '1px solid #ccc',
+                                    background: '#fff',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {showPassword ? 'Hide' : 'Show'}
+                            </button>
+                        </div>
                         {errors.password && <span className="error-message">{errors.password}</span>}
+
+                        {/* Show password rules on signup tab */}
+                        {isSignUp && (
+                            <ul style={{ marginTop: 8, marginLeft: 18, paddingLeft: 0 }}>
+                                <li style={{ color: passMin ? 'green' : '#b00' }}>At least 8 characters</li>
+                                <li style={{ color: passUpper ? 'green' : '#b00' }}>At least one uppercase letter</li>
+                                <li style={{ color: passDigit ? 'green' : '#b00' }}>At least one digit</li>
+                            </ul>
+                        )}
                     </div>
 
                     <button type="submit" className="login-button">
