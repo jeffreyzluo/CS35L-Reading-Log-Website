@@ -1,4 +1,4 @@
-import { Given, When, Then } from '@cucumber/cucumber';
+import { Given, When, Then, Before, After } from '@cucumber/cucumber';
 import request from 'supertest';
 import assert from 'assert';
 import path from 'path';
@@ -21,6 +21,8 @@ let registrationResponse;
 let loginResponse;
 let protectedResponse;
 let token;
+let txClient = null;
+let originalPoolQuery = null;
 
 async function resetDb() {
   // Simple cleanup for users and books tables between scenarios
@@ -28,6 +30,34 @@ async function resetDb() {
   await pool.query('DELETE FROM user_books');
   await pool.query('DELETE FROM users');
 }
+
+// Start a transaction for each scenario and route all pool.query calls
+// through the transaction client so changes can be rolled back afterwards.
+Before(async function() {
+  // save original pool.query
+  originalPoolQuery = pool.query;
+  txClient = await pool.connect();
+  await txClient.query('BEGIN');
+  // route pool.query to txClient.query
+  pool.query = (...args) => txClient.query(...args);
+});
+
+After(async function() {
+  try {
+    if (txClient) {
+      // rollback any changes made during scenario
+      await txClient.query('ROLLBACK');
+    }
+  } finally {
+    // restore original pool.query and release client
+    if (originalPoolQuery) pool.query = originalPoolQuery;
+    if (txClient) {
+      try { txClient.release(); } catch (e) {}
+    }
+    txClient = null;
+    originalPoolQuery = null;
+  }
+});
 
 Given('a clean user database', async function() {
   await resetDb();

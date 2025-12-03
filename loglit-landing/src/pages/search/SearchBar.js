@@ -1,14 +1,12 @@
-// Handles the search input and submission
-
 import React, { useState } from "react";
 
 function SearchBar({ onSearch }) {
   const [query, setQuery] = useState("");
 
   const handleSubmit = (e) => {
-    e.preventDefault();     // Prevent page refresh
+    e.preventDefault(); // prevent page refresh
     if (query.trim()) {
-      onSearch(query);      // Send query to parent
+      onSearch(query); // send query to parent
     }
   };
 
