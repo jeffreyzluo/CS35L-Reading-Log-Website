@@ -9,6 +9,11 @@ function SharedPosts({ username: profileUsername, canEdit }) {
   useEffect(() => {
     if (!profileUsername) return;
 
+    // Reset any recommendation state when viewing a different profile
+    setRecommendation(null);
+    setRecError(null);
+    setRecLoading(false);
+
     const fetchBooks = async () => {
       try {
         const response = await fetch(`http://localhost:3001/api/user_books/${profileUsername}`, {
