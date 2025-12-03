@@ -1,9 +1,11 @@
+// Main search page component
+// Allows users to search for books and view results by sending queries to the backend
+
 import React, { useState } from 'react';
 import SearchBar from './SearchBar';
 import './Search.css';
 import '../profile/Profile.css';
 import Post from './Post';
-
 
 function Search() {
   const [results, setResults] = useState([]);
@@ -20,19 +22,18 @@ function Search() {
         return response.json();
       })
       .then(data => {
-        // Map the API response
         const formattedResults = data.map(item => ({
-          name: item.title,               // title
-          authors: item.authors,          // author
-          description: item.description,  // description
-          thumbnail: item.thumbnail,      // thumbnail (optional)
-          volumeId: item.volumeId         // book ID
+          name: item.title,              
+          authors: item.authors,         
+          description: item.description,  
+          thumbnail: item.thumbnail,      
+          volumeId: item.volumeId      
         }));
         setResults(formattedResults);
       })
       .catch(err => {
         console.error('Error fetching search results:', err);
-        setResults([]); // clear results on error
+        setResults([]);   // Clear results on error
       });
       console.log("Done!")
 
@@ -52,11 +53,10 @@ function Search() {
           results.map((item, idx) => (
             <div key={idx} style={{ padding: "5px", borderBottom: "1px solid #ccc" }}>
               <h3>{item.name}</h3>
-              {item.volumeId && <p>Volume ID: {item.volumeId}</p>}
               {item.authors && (
                 <p>
                   By: {
-                    // Check if it's an array and join it, otherwise just display the value (which might be a string)
+                    // Check if it's an array and join it, otherwise display the value (which might be a string)
                     Array.isArray(item.authors) 
                       ? item.authors.join(', ') 
                       : item.authors
@@ -67,14 +67,7 @@ function Search() {
               {item.description && <p>{item.description}</p>}
               {item.thumbnail && <img src={item.thumbnail} alt={item.name} />}
               <Post 
-                title={item.name} 
-                volumeId={item.volumeId}
-                author={
-                  Array.isArray(item.authors) 
-                    ? item.authors.join(", ") 
-                    : item.authors
-                }
-              />   {/* ← included inside each result */}
+                volumeId={item.volumeId}/>
             </div>
           ))
         ) : (

@@ -1,53 +1,18 @@
-import React, { useState, useEffect } from 'react';
+// Allows users to leave a review, rating, and read status for a book
+// Sends this data to the backend to be stored in the database
 
-function Post({title, author, volumeId}) {
-  // Post feature state
+import React, { useState } from 'react';
+
+function Post({volumeId}) {
   const [readStatus, setReadStatus] = useState('');
   const [review, setReview] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
   const [rating, setRating] = useState(0);
   
-  // Followers/Following state
-  const [followersCount, setFollowersCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
-
-
-  // Fetch followers and following counts on component mount
-  useEffect(() => {
-    const fetchFollowData = async () => {
-      try {
-        // Fetch followers
-        const followersResponse = await fetch('http://localhost:3001/api/user/followers', {
-          method: 'GET',
-          credentials: 'include',
-        });
-        
-        if (followersResponse.ok) {
-          const followersData = await followersResponse.json();
-          setFollowersCount(followersData.count || 0);
-        }
-
-        // Fetch following
-        const followingResponse = await fetch('http://localhost:3001/api/user/following', {
-          method: 'GET',
-          credentials: 'include',
-        });
-        
-        if (followingResponse.ok) {
-          const followingData = await followingResponse.json();
-          setFollowingCount(followingData.count || 0);
-        }
-      } catch (err) {
-        console.error('Error fetching follow data:', err);
-      }
-    };
-
-    fetchFollowData();
-  }, []);
-
   // --- Post Handlers ---
   const handleReviewClick = () => setIsReviewing(true);
 
+  // Submit review, rating, and read status to backend
   const handleShareClick = async () => {
     if (!review.trim()) return;
 
@@ -72,7 +37,7 @@ function Post({title, author, volumeId}) {
         throw new Error(data.error || "Failed to add book");
       }
       
-      // --- Reset Inputs ---
+      // Reset input fields after successful submission
       setReview('');
       setReadStatus('');
       setRating(0);
@@ -84,33 +49,8 @@ function Post({title, author, volumeId}) {
 
   };
 
-  const handleTestSession = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/me', {
-        method: 'GET',
-        credentials: 'include', // send the JWT cookie
-      });
-      const data = await response.json();
-      console.log('Current logged-in user (frontend):', data);
-      // backend will also print the user in terminal
-    } catch (err) {
-      console.error('Error fetching current user:', err);
-    }
-  };
-
   return(
     <div className="post-Section">
-      {/* Followers/Following Display */}
-      <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
-        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-          <div>
-            <strong>{followersCount}</strong> Followers
-          </div>
-          <div>
-            <strong>{followingCount}</strong> Following
-          </div>
-        </div>
-      </div>
 
       {/* Input Post */}
       <div className="post-Container">
@@ -125,10 +65,6 @@ function Post({title, author, volumeId}) {
           <option value="completed">✅ Completed</option>
           <option value="wishlist">⭐ Wishlist</option>
         </select>
-        {/* --- Test button --- */}
-          <button
-          style={{ marginTop: '10px', backgroundColor: '#eee', padding: '5px 10px' }}
-          onClick={handleTestSession}>Test Session</button>
 
         {/* Post Review */}
         {isReviewing ? (
