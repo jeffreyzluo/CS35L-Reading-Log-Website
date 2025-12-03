@@ -4,9 +4,10 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 100%;
-  box-sizing: border-box;
+  flex: 1;            /* ensures it takes full width */
+  gap: 0.3rem;        /* small vertical spacing */
 }
+
 .post-Review {
   display: flex;
   overflow-wrap: break-word;
@@ -37,6 +38,26 @@
   flex-direction: column;
   gap: 1rem; /* space between posts */
 }
+
+.sharedPost li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.bookThumbnail {
+  width: 120px;
+  height: auto;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid black; /* makes tiny images clearer */
+}
+
+
 
 /* When Post component is used inside compact contexts (like search results),
    make the post controls compact and responsive so buttons don't overflow */

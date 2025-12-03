@@ -37,12 +37,14 @@ function SharedPosts({ username: profileUsername, canEdit }) {
                 ...book,
                 title: gbData.volumeInfo?.title || 'Unknown title',
                 author: gbData.volumeInfo?.authors?.[0] || 'Unknown author',
+                thumbnail: gbData.volumeInfo?.imageLinks?.thumbnail || null,
               };
             } catch {
               return {
                 ...book,
                 title: 'Unknown title',
                 author: 'Unknown author',
+                thumbnail: null,
               };
             }
           })
@@ -134,19 +136,46 @@ function SharedPosts({ username: profileUsername, canEdit }) {
       <div>
       <ul className="sharedPost">
         {books.map((post) => (
-        <li key={post.book_id}>
-          <div>{post.title}</div>
-          <div>{post.author || 'Unknown author'}</div>
-          <div>{new Date(post.added_at).toLocaleString()}</div>
-          <div>{post.status}</div>
-          <div>{post.rating}</div>
-          <div>{post.review}</div>
-          {canEdit && (
-            <button className="deletePost" onClick={() => handleDeleteClick(post.book_id)}>
-              Delete
-            </button>
-          )}
-        </li>
+          <li key={post.book_id} className="postItem">
+  <div className="postImage">
+    {post.thumbnail && (
+      <img src={post.thumbnail} alt={post.title} className="bookThumbnail" />
+    )}
+  </div>
+
+  <div className="postContent">
+    <div className="postTitle">{post.title}</div>
+    <div className="postAuthor">{post.author || 'Unknown author'}</div>
+    <div className="postDate">
+      {new Date(post.added_at).toLocaleString()}
+    </div>
+    <div className="postStatus">{post.status}</div>
+    <div className="postReview">{post.review}</div>
+    <div className="star-rating">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          style={{
+            fontSize: '24px',
+            color: star <= post.rating ? "#FFD700" : "#ccc",
+            WebkitTextStroke: "1px black",
+          }}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+    {canEdit && (
+      <button
+        className="deletePost"
+        onClick={() => handleDeleteClick(post.book_id)}
+      >
+        Delete
+      </button>
+    )}
+  </div>
+</li>
+
         ))}
       </ul>
       </div>
