@@ -1,13 +1,15 @@
 import React from 'react';
+import './HeroImage.css';
 
-function HeroImage() {
+function HeroImage({ children }) {
+  const bgUrl = `url(${process.env.PUBLIC_URL || ''}/library.jpg)`;
+
   return (
-    <section className="hero-image">
-      <div className="container">
-        <img
-          src="/home.jpg"
-          alt="Books and reading"
-        />
+    <section className="hero-image" style={{ ['--hero-bg']: bgUrl }}>
+      <div className="hero-content">
+        <div className="container">
+          {children}
+        </div>
       </div>
     </section>
   );

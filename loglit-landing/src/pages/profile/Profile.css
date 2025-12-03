@@ -153,6 +153,16 @@
   margin-top: 20px; /* small gap between Bio and SharedPosts */
 }
 
+/* Align friends section with the rest of the page (same container width and padding) */
+.friends-main {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  margin-top: 20px;
+}
+
 .profile-main {
   display: flex;
   flex-direction: column;
@@ -170,5 +180,40 @@
 
 .post-Section {
   width: 100%;
+}
+
+/* Friends section card styling to visually match posts and content */
+.friends-section {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.friends-tabs .friends-tab {
+  padding: 8px 16px;
+  border-radius: 6px 6px 0 0;
+}
+
+.friends-list ul li {
+  cursor: pointer;
+}
+
+/* Star rating "book" to ensure visibility against busy backgrounds */
+.star-rating {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  align-items: center;
+}
+
+.star-rating span {
+  display: inline-block;
+  line-height: 1;
+  font-size: 1.2rem; /* base size; component may override */
 }
 

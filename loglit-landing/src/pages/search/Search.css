@@ -1,9 +1,51 @@
 /* Search page layout and form styles */
 .search-page {
+  position: relative;
+  min-height: 100vh;
+  /* keep content centered and constrained similar to profile */
   max-width: 1000px;
   margin: 0 auto;
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+/* Animated blurred background layer using the provided image (tiles and scrolls) */
+.search-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--search-bg);
+  background-repeat: repeat;
+  /* Choose a tile height that looks good for the collage; adjust if needed */
+  background-size: auto 480px;
+  background-position: 0 0;
+  filter: blur(1px) brightness(0.7);
+  transform: translateZ(0);
+  z-index: -2;
+  animation: bg-scroll var(--bg-speed, 30s) linear infinite;
+}
+
+/* Scroll the background vertically to create an infinite-moving feeling.
+   The actual pixel travel (1000px) ensures smooth repeat for tiled images. */
+@keyframes bg-scroll {
+  from { background-position: 0 0; }
+  to { background-position: 0 -1000px; }
+}
+
+@media (max-width: 800px) {
+  .search-page::before {
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
+  }
+}
+
+.search-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.65);
+  z-index: -1;
 }
 
 .search-box {
@@ -40,6 +82,44 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
+}
+
+/* Clear button (used next to the SearchBar) */
+.clear-button {
+  margin-left: 12px;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+}
+
+.clear-button:disabled {
+  background: #f5f5f5;
+  color: #9aa0a6;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+/* Ensure stars are readable on the animated background by giving them a
+   small white "book" background with padding and subtle shadow. */
+.star-rating {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  align-items: center;
+}
+
+.star-rating span {
+  display: inline-block;
+  line-height: 1;
+  font-size: 1.2rem;
 }
 
 .results-container {

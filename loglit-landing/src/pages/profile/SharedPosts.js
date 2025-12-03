@@ -140,6 +140,8 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             <option value="date">Date added</option>
             <option value="rating">Rating</option>
+            <option value="author">Author</option>
+            <option value="title">Title</option>
           </select>
           <button
             aria-label={sortDir === 'desc' ? 'Sort descending' : 'Sort ascending'}
@@ -149,6 +151,13 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
           >
             {sortDir === 'desc' ? '↓' : '↑'}
           </button>
+          <span style={{ marginLeft: 10, fontSize: 13, color: '#333' }}>
+            {(() => {
+              const dirText = sortDir === 'desc' ? (sortBy === 'rating' || sortBy === 'date' ? 'Newest/Highest first' : 'Z → A') : (sortBy === 'rating' || sortBy === 'date' ? 'Oldest/Lowest first' : 'A → Z');
+              const fieldText = sortBy === 'date' ? 'Date' : (sortBy === 'rating' ? 'Rating' : (sortBy === 'author' ? 'Author' : 'Title'));
+              return `Sorting: ${fieldText} (${dirText})`;
+            })()}
+          </span>
         </label>
         {recError && <div style={{ color: 'crimson', marginTop: 8 }}>{recError}</div>}
         {recommendation && (
@@ -161,48 +170,86 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
       {/* Shared Posts */}
       <div>
       <ul className="sharedPost">
-        {books.map((post) => (
-          <li key={post.book_id} className="postItem">
-  <div className="postImage">
-    {post.thumbnail && (
-      <img src={post.thumbnail} alt={post.title} className="bookThumbnail" />
-    )}
-  </div>
+        {(() => {
+          const q = (query || '').trim().toLowerCase();
+          const filtered = q === '' ? books : books.filter((post) => {
+            const title = (post.title || '').toLowerCase();
+            const author = (post.author || '').toLowerCase();
+            return title.includes(q) || author.includes(q);
+          });
 
-  <div className="postContent">
-    <div className="postTitle">{post.title}</div>
-    <div className="postAuthor">{post.author || 'Unknown author'}</div>
-    <div className="postDate">
-      {new Date(post.added_at).toLocaleString()}
-    </div>
-    <div className="postStatus">{post.status}</div>
-    <div className="postReview">{post.review}</div>
-    <div className="star-rating">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <span
-          key={star}
-          style={{
-            fontSize: '24px',
-            color: star <= post.rating ? "#FFD700" : "#ccc",
-            WebkitTextStroke: "1px black",
-          }}
-        >
-          ★
-        </span>
-      ))}
-    </div>
-    {canEdit && (
-      <button
-        className="deletePost"
-        onClick={() => handleDeleteClick(post.book_id)}
-      >
-        Delete
-      </button>
-    )}
-  </div>
-</li>
+          if (filtered.length === 0) {
+            return <li key="no-results">No posts match your search.</li>;
+          }
 
-        ))}
+          const dir = sortDir === 'asc' ? 1 : -1;
+          const sorted = filtered.slice().sort((a, b) => {
+            if (sortBy === 'rating') {
+              const ra = Number(a.rating) || 0;
+              const rb = Number(b.rating) || 0;
+              return dir * (ra - rb);
+            }
+
+            if (sortBy === 'author') {
+              const aa = (a.author || '').toLowerCase();
+              const bb = (b.author || '').toLowerCase();
+              return dir * aa.localeCompare(bb);
+            }
+
+            if (sortBy === 'title') {
+              const ta = (a.title || '').toLowerCase();
+              const tb = (b.title || '').toLowerCase();
+              return dir * ta.localeCompare(tb);
+            }
+
+            // default: date
+            const ta = a.added_at ? new Date(a.added_at).getTime() : 0;
+            const tb = b.added_at ? new Date(b.added_at).getTime() : 0;
+            return dir * (ta - tb);
+          });
+
+          return sorted.map((post) => (
+            <li key={post.book_id} className="postItem">
+              <div className="postImage">
+                {post.thumbnail && (
+                  <img src={post.thumbnail} alt={post.title} className="bookThumbnail" />
+                )}
+              </div>
+
+              <div className="postContent">
+                <div className="postTitle">{post.title}</div>
+                <div className="postAuthor">{post.author || 'Unknown author'}</div>
+                <div className="postDate">
+                  {post.added_at ? new Date(post.added_at).toLocaleString() : ''}
+                </div>
+                <div className="postStatus">{post.status}</div>
+                <div className="postReview">{post.review}</div>
+                <div className="star-rating">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      style={{
+                        fontSize: '24px',
+                        color: star <= post.rating ? "#FFD700" : "#ccc",
+                        WebkitTextStroke: "1px black",
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                {canEdit && (
+                  <button
+                    className="deletePost"
+                    onClick={() => handleDeleteClick(post.book_id)}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </li>
+          ));
+        })()}
       </ul>
       </div>
     </div>

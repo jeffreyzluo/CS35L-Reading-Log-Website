@@ -64,8 +64,9 @@ function Hero() {
 function Home() {
   return (
     <div className="App">
-      <Hero />
-      <HeroImage />
+      <HeroImage>
+        <Hero />
+      </HeroImage>
     </div>
   );
 }

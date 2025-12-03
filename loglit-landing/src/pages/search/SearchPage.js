@@ -9,6 +9,8 @@ import Post from './Post';
 
 function Search() {
   const [results, setResults] = useState([]);
+  const [clearSignal, setClearSignal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   function handleSearch(query) {
     console.log("Searching for...", query)
@@ -39,13 +41,29 @@ function Search() {
 
   }
 
+  const handleClear = () => {
+    setResults([]);
+    // bump clearSignal so SearchBar clears its input
+    setClearSignal((s) => s + 1);
+    // also reset tracked query
+    setSearchQuery('');
+  };
+
   return (
-    <div className="search-page">
+    <div className="search-page" style={{ '--search-bg': `url(${process.env.PUBLIC_URL || ''}/facebook-book.png)` }}>
       <div className="profile-header">
         <h1 className="profile-title">Find a Book!</h1>
       </div>
       <div className="search-box">
-        <SearchBar onSearch={handleSearch} />
+        <SearchBar onSearch={handleSearch} clearSignal={clearSignal} onQueryChange={setSearchQuery} />
+        <button
+          type="button"
+          className="clear-button"
+          onClick={handleClear}
+          disabled={results.length === 0 && (!searchQuery || !searchQuery.trim())}
+        >
+          Clear
+        </button>
       </div>
 
       <div className="results-container">

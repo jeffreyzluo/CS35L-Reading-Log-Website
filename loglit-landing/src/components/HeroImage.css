@@ -1,0 +1,33 @@
+/* Full-page hero background using library.jpg and centered white content box */
+.hero-image {
+  --bg: var(--hero-bg);
+  background-image: var(--hero-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-content {
+  background: white;
+  padding: 28px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  max-width: 900px;
+  width: 100%;
+}
+
+/* Keep inner container paddings consistent */
+.hero-content .container {
+  padding: 0;
+}
+
+@media (max-width: 600px) {
+  .hero-content {
+    padding: 18px;
+    margin: 0 12px;
+  }
+}
