@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'assert';
 import * as db from '../db.js';
 
+
 test('getUserByEmail returns null when not found', async () => {
   const orig = db.pool.query;
   db.pool.query = async () => ({ rows: [] });

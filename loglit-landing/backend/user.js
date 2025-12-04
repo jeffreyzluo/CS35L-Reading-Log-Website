@@ -1,4 +1,5 @@
 import { withTransaction } from './db.js';
+import {user_queries} from './queries.js';
 import bcrypt from 'bcrypt';
 
 // Small validation helpers to express intent and avoid repetition
@@ -19,6 +20,9 @@ function requireNonEmptyString(value, name) {
     }
 }
 
+//Note: For all functions below, we have a transaction wrapper for ACID management and testing purposes.
+//withTransaction wrapper will be used as default, and withTestTransaction can be passed in for testing database oeprations.
+
 /**
  * Create a new user with a hashed password.
  * @param {string} username - Desired username (unique).
@@ -27,8 +31,8 @@ function requireNonEmptyString(value, name) {
  * @returns {Promise<{username:string, date_joined:Date}>} Inserted user info.
  * @throws {Error} If required parameters are missing or uniqueness violations occur.
  */
-export async function newUser(username, email, password) {
-    return withTransaction(async (client) => {
+export async function newUser(username, email, password, tx = withTransaction) {
+    return tx(async (client) => {
         // Basic validation
         requireNonEmptyString(username, 'username');
         requireNonEmptyString(email, 'email');
@@ -41,9 +45,7 @@ export async function newUser(username, email, password) {
         try {
             // Insert user (let database constraints handle uniqueness)
             const result = await client.query(
-                `INSERT INTO users (username, email, password_hash)
-                 VALUES ($1, $2, $3)
-                 RETURNING username, date_joined`,
+                user_queries.newUser,
                 [username, email, passwordHash]
             );
 
@@ -70,8 +72,8 @@ export async function newUser(username, email, password) {
  * @param {string} newUsername - New desired username.
  * @returns {Promise<{username:string}>} Updated user row.
  */
-export async function updateUsername(username, newUsername) {
-    return withTransaction(async (client) => {
+export async function updateUsername(username, newUsername, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(newUsername, 'newUsername');
         requireNonEmptyString(username, 'username');
 
@@ -79,7 +81,7 @@ export async function updateUsername(username, newUsername) {
 
         // Check if new username already exists
         const existingUser = await client.query(
-            'SELECT username FROM users WHERE username = $1',
+            user_queries.userExists,
             [trimmedNewUsername]
         );
         if (existingUser.rows.length > 0 && existingUser.rows[0].username !== username) {
@@ -89,10 +91,7 @@ export async function updateUsername(username, newUsername) {
         try {
             // Update the users table - ON UPDATE CASCADE ensures related rows update
             const result = await client.query(
-                `UPDATE users
-                 SET username = $2
-                 WHERE username = $1
-                 RETURNING username`,
+                user_queries.updateUsername,
                 [username, trimmedNewUsername]
             );
 
@@ -116,15 +115,12 @@ export async function updateUsername(username, newUsername) {
  * @param {string|null} description - New description text (may be null).
  * @returns {Promise<{username:string, description:string|null}>}
  */
-export async function updateDescription(username, description) {
-    return withTransaction(async (client) => {
+export async function updateDescription(username, description, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(username, 'username');
 
         const result = await client.query(
-            `UPDATE users
-             SET description = $2
-             WHERE username = $1
-             RETURNING username, description`,
+            user_queries.updateDescription,
             [username, description]
         );
         if (result.rowCount === 0) {
@@ -141,10 +137,10 @@ export async function updateDescription(username, description) {
  * @param {string} username - Username to delete.
  * @returns {Promise<{username:string, deleted:boolean}>}
  */
-export async function deleteUser(username) {
-    return withTransaction(async (client) => {
+export async function deleteUser(username, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(username, 'username');
-        const result = await client.query('DELETE FROM users WHERE username = $1', [username]);
+        const result = await client.query(user_queries.deleteUser, [username]);
 
         if (result.rowCount === 0) {
             throw new Error('User not found');
@@ -158,11 +154,11 @@ export async function deleteUser(username) {
  * @param {string} username - Username to fetch.
  * @returns {Promise<Object|null>} User row or null if not found.
  */
-export async function getUserDetails (username) {
-    return withTransaction(async (client) => {
+export async function getUserDetails (username, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(username, 'username');
         const result = await client.query(
-            'SELECT username, email, date_joined, description FROM users WHERE username = $1',
+            user_queries.getUserDetails,
             [username]
         );
         return result.rows[0] || null;
@@ -175,8 +171,8 @@ export async function getUserDetails (username) {
  * @param {string} friendUsername - The followed user's username.
  * @returns {Promise<Object>} Inserted friendship row.
  */
-export async function addFriend(userUsername, friendUsername) {
-    return withTransaction(async (client) => {
+export async function addFriend(userUsername, friendUsername, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(userUsername, 'userUsername');
         requireNonEmptyString(friendUsername, 'friendUsername');
 
@@ -185,7 +181,7 @@ export async function addFriend(userUsername, friendUsername) {
         }
 
         // Ensure the friend exists
-        const friendExists = await client.query('SELECT username FROM users WHERE username = $1', [friendUsername]);
+        const friendExists = await client.query(user_queries.friendExists, [friendUsername]);
         if (friendExists.rowCount === 0) {
             const err = new Error('Friend user not found');
             err.status = 404;
@@ -194,7 +190,7 @@ export async function addFriend(userUsername, friendUsername) {
 
         // Check if relationship already exists
         const existing = await client.query(
-            'SELECT 1 FROM user_friends WHERE user_username = $1 AND friend_username = $2',
+            user_queries.checkFriendship,
             [userUsername, friendUsername]
         );
         if (existing.rowCount > 0) {
@@ -205,7 +201,7 @@ export async function addFriend(userUsername, friendUsername) {
         }
 
         const result = await client.query(
-            'INSERT INTO user_friends (user_username, friend_username) VALUES ($1, $2) RETURNING *',
+            user_queries.addFriend,
             [userUsername, friendUsername]
         );
         return result.rows[0];
@@ -218,13 +214,13 @@ export async function addFriend(userUsername, friendUsername) {
  * @param {string} friendUsername - The followed user's username.
  * @returns {Promise<{friend:string, deleted:boolean}>}
  */
-export async function removeFriend(userUsername, friendUsername) {
-    return withTransaction(async (client) => {
+export async function removeFriend(userUsername, friendUsername, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(userUsername, 'userUsername');
         requireNonEmptyString(friendUsername, 'friendUsername');
 
         const result = await client.query(
-            'DELETE FROM user_friends WHERE user_username = $1 AND friend_username = $2',
+            user_queries.removeFriend,
             [userUsername, friendUsername]
         );
         if (result.rowCount === 0) {
@@ -240,12 +236,12 @@ export async function removeFriend(userUsername, friendUsername) {
  * @param {string} username - Username to query followers for.
  * @returns {Promise<Array<{user_username:string}>>}
  */
-export async function getFollowers(username) {
-    return withTransaction(async (client) => {
+export async function getFollowers(username, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(username, 'username');
         
         const result = await client.query(
-            'SELECT user_username FROM user_friends WHERE friend_username = $1',
+            user_queries.getFollowers,
             [username]
         );
         
@@ -258,12 +254,12 @@ export async function getFollowers(username) {
  * @param {string} username - Username to query following list for.
  * @returns {Promise<Array<{friend_username:string}>>}
  */
-export async function getFollowing(username) {
-    return withTransaction(async (client) => {
+export async function getFollowing(username, tx = withTransaction) {
+    return tx(async (client) => {
         requireNonEmptyString(username, 'username');
         
         const result = await client.query(
-            'SELECT friend_username FROM user_friends WHERE user_username = $1',
+            user_queries.getFollowing,
             [username]
         );
         
