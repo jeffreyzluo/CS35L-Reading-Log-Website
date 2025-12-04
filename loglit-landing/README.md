@@ -72,3 +72,74 @@ Step 2: Create OAuth Client
 3. Fill out Application Type with "Web application", fill out Name, add http://localhost:3000 as an Authorized JavaScript origins, and create the OAuth client.
 4. The Client ID shown will be the GOOGLE_CLIENT_ID and REACT_APP_GOOGLE_CLIENT_ID API keys inside .env.
 
+## Playwright End-to-End Tests
+
+Run the Playwright E2E tests for the auth flow (signup, sign out, sign in, delete account) and adding book reviews (adding, deleting).
+
+1. Install Playwright browsers (required once):
+
+```bash
+npx playwright install
+```
+
+2. Start the backend and frontend in separate terminals:
+
+```bash
+# Terminal 1: start backend
+npm run backend
+
+# Terminal 2: start frontend (React dev server)
+npm start
+```
+
+3. Run the E2E tests:
+
+```bash
+npm run test:e2e
+```
+
+E2E Tests Included
+- `tests/e2e/auth.spec.mjs` — Auth end-to-end flow:
+	- Signs up a new, unique user through the UI
+	- Verifies navigation to `/profile`
+	- Signs out and signs back in
+	- Deletes the created account and verifies redirect to `/login`
+
+- `tests/e2e/book.spec.mjs` — Book review flow:
+	- Signs up a new, unique user through the UI
+	- Performs a real Google Books search via the backend (requires `GOOGLE_BOOKS_API_KEY` in your `.env`)
+	- Submits a review (rating + text) from the Search results UI
+	- Verifies the review appears in the user's `SharedPosts` on their profile
+	- Deletes the review and verifies it is removed
+
+How to run specific tests
+- Run all E2E tests (default config):
+
+```bash
+npm run test:e2e
+```
+
+- Run a single test file:
+
+```bash
+npm run test:e2e -- tests/e2e/book.spec.mjs
+```
+or
+```bash
+npm run test:e2e -- tests/e2e/auth.spec.mjs
+```
+
+Debugging & Slower Visual Runs
+- Run headed (shows browser) and slow actions using `SLOWMO` and `--headed`:
+
+```bash
+SLOWMO=80 npm run test:e2e -- --headed
+```
+
+- Run interactive Playwright inspector (pauses at breakpoints):
+
+```bash
+npm run test:e2e -- --debug
+```
+
+ - The book test performs a real `/api/search` call to the backend, which in turn calls Google Books. Ensure `GOOGLE_BOOKS_API_KEY` is set in your `.env` and the backend is started before running this test.

@@ -24,6 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "backend": "node backend/app.js",
+    "test:e2e": "playwright test --config=playwright.config.mjs",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:unit": "node --test backend/tests/db.test.js",
@@ -50,6 +51,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.43.0",
     "@cucumber/cucumber": "^12.2.0",
     "supertest": "^7.1.4"
   }
