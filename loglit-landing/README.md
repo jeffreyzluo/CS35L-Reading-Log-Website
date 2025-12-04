@@ -1,70 +1,74 @@
-# Getting Started with Create React App
+# Reading Log — Local Development
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This file contains detailed instructions for running the Reading Log app locally (backend + frontend).
 
-## Available Scripts
+## Prerequisites
 
-In the project directory, you can run:
+- Node.js (v16+ recommended)
+- npm
+- PostgreSQL@18
 
-### `npm start`
+## Setup summary
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. Install deps: `npm install`
+2. Create a Postgres DB and run `backend/databases.txt` schema
+3. Add a `.env` file in the repo root with database and secret settings
+4. Run backend: `npm run backend`
+5. Run frontend: `npm start`
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## API Key Generation
 
-### `npm test`
+**Gemini API Key Generation**:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Prerequisites:
+- A [Google AI Studio](https://aistudio.google.com) Account that isn't restricted by your professional organization.
 
-### `npm run build`
+Step 1: Access Google AI Studio
+1. Go to [Google AI Studio](https://aistudio.google.com).
+2. Sign in with your Google account.
+3. Click on the "Get API key" button in the bottom-left sidebar.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Step 2: Create the Key
+1. Click on the "Create API key" button in the top right.
+2. Name your key and attach to desired cloud project.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Step 3: Securing Your Key
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Once the key is generated, it will appear in a list.
+1. Click the Copy icon next to your key.
+2. Paste onto .env with GEMINI_API_KEY=key.
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**Google Books API Key Generation**:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. Go to [Google Cloud Console](https://console.cloud.google.com).
+2. Log in with a google account.
+3. Select a Project from the top left corner.
+4. New Project -> Create .
+5. Open Project Picker -> Open new project.
+6. APIs & Services -> Library -> Look up "Books API" -> "Enable".
+7. Credentials -> + Create Credentials -> API Key.
+8. Go to -> Edit API Key -> Restrict key -> Books API -> Save.
+9. Show key -> Paste onto .env with GOOGLE_BOOKS_API_KEY=key.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Learn More
+**Google Authorization API Key Generation**:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Prerequisites:
+- A Google Cloud Platform (GCP) Account.
+- An existing Project within GCP.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Step 1: Configure the OAuth Consent Screen
+Before you can create credentials, you must configure the consent screen (the screen users see when they log in).
+1. Navigate to the [Google Cloud Console](https://console.cloud.google.com).
+2. In the left sidebar, go to APIs & Services > OAuth consent screen.
+3. Click the "Get started" button to configure application settings.
+4. Fill out Application Name with "LogLit", fill out Contact Email, select External, agree to Terms and Services and create the OAuth configuration.
 
-### Code Splitting
+Step 2: Create OAuth Client
+1. In the left sidebar, go to Overview.
+2. Click the "Create OAuth client" button
+3. Fill out Application Type with "Web application", fill out Name, add http://localhost:3000 as an Authorized JavaScript origins, and create the OAuth client.
+4. The Client ID shown will be the GOOGLE_CLIENT_ID and REACT_APP_GOOGLE_CLIENT_ID API keys inside .env.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)

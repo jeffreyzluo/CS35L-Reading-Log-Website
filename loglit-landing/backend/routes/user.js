@@ -1,6 +1,6 @@
 import express from 'express';
 import authMiddleware from '../middleware/auth.js';
-import { updateDescription, updateUsername, getUserDetails, getFollowers, getFollowing, addFriend } from '../user.js';
+import { updateDescription, updateUsername, getUserDetails, getFollowers, getFollowing, addFriend, deleteUser } from '../user.js';
 
 const router = express.Router();
 
@@ -108,4 +108,30 @@ router.post('/friends', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/user
+ * Delete the authenticated user's account.
+ */
+router.delete('/', authMiddleware, async (req, res) => {
+  try {
+    const username = req.user.username;
+    await deleteUser(username);
+    // Clear the authentication cookie so the client is logged out
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    };
+    res.clearCookie('jwt', cookieOptions);
+    res.status(200).json({ message: 'Account deleted' });
+  } catch (err) {
+    if (err.message === 'User not found') {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.status(500).json({ error: err.message });
+    }
+  }
+});
+
 export default router;
+
