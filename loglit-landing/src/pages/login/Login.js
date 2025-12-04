@@ -2,23 +2,35 @@ import React, { useState, useEffect, useContext } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../AuthContext';
+import api from '../../services/api';
 
+/**
+ * Login component
+ * - Supports sign-in and sign-up flows
+ * - Optionally calls `onSubmit` (provided by parent) for login
+ */
 function Login({ onSubmit }) {
     const navigate = useNavigate();
     const { token, signIn } = useContext(AuthContext);
-    const [isSignUp, setIsSignUp] = useState(false);
+
+    // UI mode: false => Login, true => Sign Up
+    const [isSigningUp, setIsSigningUp] = useState(false);
+
+    // Form fields
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [isEmailValid, setIsEmailValid] = useState(null);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+
+    // Validation/errors and server feedback
     const [errors, setErrors] = useState({});
     const [serverMessage, setServerMessage] = useState(null);
 
-    const validateEmail = (email) => {
-        // Basic, practical email regex (case-insensitive)
+    // Basic, practical email regex (case-insensitive)
+    const validateEmail = (value) => {
         const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-        return emailRegex.test(String(email || ''));
+        return emailRegex.test(String(value || ''));
     };
 
     const resetMessages = () => {
@@ -29,7 +41,7 @@ function Login({ onSubmit }) {
     const handleEmailChange = (value) => {
         setEmail(value);
         // Only perform live validation in Sign Up mode
-        if (!isSignUp) return;
+        if (!isSigningUp) return;
 
         // Live-validate on every change and show visual hint
         if (!value || !value.trim()) {
@@ -49,7 +61,7 @@ function Login({ onSubmit }) {
 
     const handleEmailBlur = () => {
         // Only validate on blur in Sign Up mode
-        if (!isSignUp) return;
+        if (!isSigningUp) return;
 
         // Validate on blur to avoid noisy inline errors while typing
         if (!email.trim()) {
@@ -67,8 +79,10 @@ function Login({ onSubmit }) {
         }
     };
 
-    // Google client id (provided)
-    const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '706234058502-c2dk7t2rr4aod9mf5jg8essau207cnrs.apps.googleusercontent.com';
+    // Google client id (from frontend env). Create React App exposes vars prefixed with REACT_APP_
+    const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+    
 
     useEffect(() => {
         // If already logged in, redirect to profile
@@ -76,6 +90,11 @@ function Login({ onSubmit }) {
             navigate('/profile');
             return;
         }
+
+        // Helper inside effect so it doesn't need to be a hook dependency
+        const storeTokenSafely = (token) => {
+            try { signIn(token); } catch (_) { try { localStorage.setItem('authToken', token); } catch (_) {} }
+        };
 
         // Render Google button if the library is available
         const tryRender = () => {
@@ -88,22 +107,15 @@ function Login({ onSubmit }) {
                         if (!idToken) return;
                         setServerMessage('Signing in with Google...');
                         try {
-                            const res = await fetch('/api/auth/google', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({ id_token: idToken })
-                            });
-                            const body = await res.json();
-                            if (res.ok && body.token) {
-                                try { signIn(body.token); } catch(_) { try { localStorage.setItem('authToken', body.token); } catch(_){} }
+                            const body = await api.auth.google(idToken);
+                            if (body && body.token) {
+                                storeTokenSafely(body.token);
                                 navigate('/profile');
                             } else {
-                                setServerMessage(body.error || 'Google sign-in failed');
+                                setServerMessage((body && body.error) || 'Google sign-in failed');
                             }
                         } catch (err) {
-                            console.error('Google sign-in error', err);
-                            setServerMessage('Google sign-in error');
+                                setServerMessage(err.message || 'Google sign-in error');
                         }
                     }
                 });
@@ -122,10 +134,11 @@ function Login({ onSubmit }) {
     }, [GOOGLE_CLIENT_ID, navigate, signIn, token]);
 
     // Derived password rule booleans for live UI feedback
-    const pass = String(password || '');
-    const passMin = pass.length >= 8;
-    const passUpper = /[A-Z]/.test(pass);
-    const passDigit = /\d/.test(pass);
+    // Derived password rule booleans for live UI feedback
+    const passwordValue = String(password || '');
+    const passwordMinOk = passwordValue.length >= 8;
+    const passwordHasUpper = /[A-Z]/.test(passwordValue);
+    const passwordHasDigit = /\d/.test(passwordValue);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -133,20 +146,20 @@ function Login({ onSubmit }) {
         const newErrors = {};
 
         // Validation
-        if (isSignUp && !username.trim()) {
+        if (isSigningUp && !username.trim()) {
             newErrors.username = 'Username is required';
         }
 
         if (!email.trim()) {
             newErrors.email = 'Email is required';
-        } else if (isSignUp && !validateEmail(email)) {
+        } else if (isSigningUp && !validateEmail(email)) {
             // Only enforce format validation on Sign Up
             newErrors.email = 'Please enter a valid email';
         }
 
-        if (!pass.trim()) {
+        if (!passwordValue.trim()) {
             newErrors.password = 'Password is required';
-        } else if (!passMin || !passUpper || !passDigit) {
+        } else if (!passwordMinOk || !passwordHasUpper || !passwordHasDigit) {
             newErrors.password = 'Password must be at least 8 characters, include an uppercase letter and a digit';
         }
 
@@ -154,28 +167,17 @@ function Login({ onSubmit }) {
 
         if (Object.keys(newErrors).length > 0) return;
 
-        if (isSignUp) {
-            // Call register endpoint
+        if (isSigningUp) {
+            // Call register endpoint via service
             try {
-                const res = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ username, email, password })
-                });
-                const body = await res.json();
-                if (res.status === 201) {
-                    setServerMessage('Account created — signing you in...');
-                    // Auto-login if onSubmit is provided
-                    if (onSubmit) {
-                        await onSubmit({ email, password });
-                    }
-                } else {
-                    setServerMessage(body.error || 'Signup failed');
+                await api.auth.register(username, email, password);
+                setServerMessage('Account created — signing you in...');
+                // Auto-login if onSubmit is provided
+                if (onSubmit) {
+                    await onSubmit({ email, password });
                 }
             } catch (err) {
-                console.error('Signup error', err);
-                setServerMessage('Signup error');
+                setServerMessage(err.message || 'Signup error');
             }
         } else {
             // Login: delegate to onSubmit (App provides it)
@@ -188,9 +190,9 @@ function Login({ onSubmit }) {
     return (
         <div className="login-container">
             <div className="login-card">
-                <h1>{isSignUp ? 'Sign Up' : 'Login'}</h1>
+                <h1>{isSigningUp ? 'Sign Up' : 'Login'}</h1>
                 <form onSubmit={handleSubmit} aria-label="form">
-                    {isSignUp && (
+                    {isSigningUp && (
                         <div className="form-group">
                             <label htmlFor="username">Username</label>
                             <input
@@ -216,7 +218,7 @@ function Login({ onSubmit }) {
                                 className={errors.email ? 'error' : (isEmailValid === true ? 'valid' : (isEmailValid === false ? 'invalid' : ''))}
                                 style={{ flex: 1 }}
                             />
-                            <span aria-live="polite" style={{ minWidth: 20, textAlign: 'center', color: isEmailValid ? 'green' : 'crimson' }}>
+                                <span aria-live="polite" style={{ minWidth: 20, textAlign: 'center', color: isEmailValid ? 'green' : 'crimson' }}>
                                 {isEmailValid === null ? '' : (isEmailValid ? '✓' : '✖')}
                             </span>
                         </div>
@@ -253,26 +255,26 @@ function Login({ onSubmit }) {
                         {errors.password && <span className="error-message">{errors.password}</span>}
 
                         {/* Show password rules on signup tab */}
-                        {isSignUp && (
+                        {isSigningUp && (
                             <ul style={{ marginTop: 8, marginLeft: 18, paddingLeft: 0 }}>
-                                <li style={{ color: passMin ? 'green' : '#b00' }}>At least 8 characters</li>
-                                <li style={{ color: passUpper ? 'green' : '#b00' }}>At least one uppercase letter</li>
-                                <li style={{ color: passDigit ? 'green' : '#b00' }}>At least one digit</li>
+                                <li style={{ color: passwordMinOk ? 'green' : '#b00' }}>At least 8 characters</li>
+                                <li style={{ color: passwordHasUpper ? 'green' : '#b00' }}>At least one uppercase letter</li>
+                                <li style={{ color: passwordHasDigit ? 'green' : '#b00' }}>At least one digit</li>
                             </ul>
                         )}
                     </div>
 
                     <button type="submit" className="login-button">
-                        {isSignUp ? 'Sign Up' : 'Login'}
+                        {isSigningUp ? 'Sign Up' : 'Login'}
                     </button>
 
                     <div style={{ marginTop: '12px' }}>
                         <button
                             type="button"
                             className="link-button"
-                            onClick={() => { resetMessages(); setIsEmailValid(null); setIsSignUp(!isSignUp); }}
+                            onClick={() => { resetMessages(); setIsEmailValid(null); setIsSigningUp(!isSigningUp); }}
                         >
-                            {isSignUp ? 'Have an account? Login' : "Don't have an account? Sign up"}
+                            {isSigningUp ? 'Have an account? Login' : "Don't have an account? Sign up"}
                         </button>
                     </div>
 

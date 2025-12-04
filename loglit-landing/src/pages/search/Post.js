@@ -5,6 +5,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../AuthContext';
 import Notification from '../../components/Notification';
+import api from '../../services/api';
 
 function Post({volumeId}) {
   const [readStatus, setReadStatus] = useState('');
@@ -41,36 +42,21 @@ function Post({volumeId}) {
     if (!review.trim()) return;
 
     try {
-      // Send POST request to backend
-      const response = await fetch("http://localhost:3001/api/books/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          book_id: volumeId,
-          rating: rating,
-          review: review.trim(),
-          status: readStatus,
-          added_at: new Date().toISOString()
-        })
+      await api.books.addBook({
+        book_id: volumeId,
+        rating: rating,
+        review: review.trim(),
+        status: readStatus,
+        added_at: new Date().toISOString()
       });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to add book");
-      }
-      
-      // --- Reset Inputs ---
-      // Show success notification (Notification component will auto-dismiss)
-      setNotification({ message: 'Review added', type: 'success' });
 
+      // --- Reset Inputs ---
+      setNotification({ message: 'Review added', type: 'success' });
       setReview('');
       setReadStatus('');
       setRating(0);
       setIsReviewing(false);
     } catch (err) {
-      console.error("Error adding book: ", err);
       alert(err.message);
     }
 

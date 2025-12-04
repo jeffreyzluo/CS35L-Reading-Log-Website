@@ -3,6 +3,7 @@ import { useNavigate, Routes, Route } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './AuthContext';
 import Login from "./pages/login/Login.js";
+import api from './services/api';
 import Profile from "./pages/profile/ProfilePage.js";
 import Search from "./pages/search/SearchPage.js";
 import HeroImage from './components/HeroImage';
@@ -77,28 +78,14 @@ function App() {
 
   const handleLogin = async ({ email, password }) => {
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password })
-      });
-
-      const body = await res.json();
-      if (!res.ok) {
-        // show simple alert; Login component can be extended to show inline errors
-        alert(body.error || 'Login failed');
-        return;
-      }
-
+      const body = await api.auth.login(email, password);
       // Save token via context and navigate to profile
-      if (body.token) {
+      if (body && body.token) {
         try { signIn(body.token); } catch (_) { try { localStorage.setItem('authToken', body.token); } catch(_){} }
         navigate('/profile');
       }
     } catch (err) {
-      console.error('Login error', err);
-      alert('Login error');
+      alert(err.message || 'Login failed');
     }
   };
 

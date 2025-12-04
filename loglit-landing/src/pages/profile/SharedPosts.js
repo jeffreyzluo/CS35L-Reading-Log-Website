@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Notification from '../../components/Notification';
+import api from '../../services/api';
+
+// SharedPosts
+// Displays a user's shared book posts, supports sorting, searching, deletion,
+// and requesting a single recommendation from the backend.
 
 function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
   const [books, setBooks] = useState([]);
@@ -20,15 +25,9 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
 
     const fetchBooks = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/user_books/${profileUsername}`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-  
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to fetch books');
-  
-        // Enrich each book with Google Books info
+        const data = await api.users.getUserBooks(profileUsername);
+
+        // Enrich each book with Google Books info (keep best-effort behavior)
         const enriched = await Promise.all(
           data.map(async (book) => {
             try {
@@ -36,7 +35,7 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
                 `https://www.googleapis.com/books/v1/volumes/${book.book_id}`
               );
               const gbData = await gbRes.json();
-  
+
               return {
                 ...book,
                 title: gbData.volumeInfo?.title || 'Unknown title',
@@ -53,10 +52,9 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
             }
           })
         );
-  
+
         setBooks(enriched);
       } catch (err) {
-        console.error('Error fetching books:', err);
       }
     };
   
@@ -75,22 +73,9 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
 
     setRecLoading(true);
     try {
-      const res = await fetch('/api/recommendation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ titles })
-      });
-
-      const body = await res.json();
-      if (!res.ok) {
-        throw new Error(body.error || 'Recommendation request failed');
-      }
-
-      // Expecting body.recommendation (string) or similar from the server
-      setRecommendation(body.recommendation || JSON.stringify(body));
+      const body = await api.recommendation.getRecommendation(titles);
+      setRecommendation(body.recommendation || String(body));
     } catch (err) {
-      console.error('Recommendation error:', err);
       setRecError(err.message || 'Recommendation failed');
     } finally {
       setRecLoading(false);
@@ -100,25 +85,15 @@ function SharedPosts({ username: profileUsername, canEdit, query = '' }) {
 
   const handleDeleteClick = async (bookId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/books/${bookId}`, {
-        method: 'DELETE',
-        credentials: 'include', // send JWT cookie
-      });
+      await api.books.deleteBook(bookId);
   
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete book');
-      }
-  
-      console.log('Deleted book:', data);
+      
   
       // Remove the deleted book from local state
       setBooks((prevBooks) => prevBooks.filter((book) => book.book_id !== bookId));
       // Show transient notification (use shared Notification component)
       setNotification({ message: 'Review removed', type: 'error' });
     } catch (err) {
-      console.error('Error deleting book:', err);
       alert(err.message);
     }
   };

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 
+// Bio
+// Displays and allows editing of a user's short profile description.
 function Bio( {username: profileUsername, canEdit} ) {
 	// Bio feature state
 	const [bio, setBio] = useState('');
@@ -12,21 +15,10 @@ function Bio( {username: profileUsername, canEdit} ) {
 
 		const fetchUserData = async () => {
 			try {
-				// Fetch description
-				const descriptionResponse = await fetch(`http://localhost:3001/api/user/${profileUsername}/description`, {
-					method: 'GET',
-					credentials: 'include',
-				});
-				
-				if (descriptionResponse.ok) {
-					const descriptionData = await descriptionResponse.json();
-					setBio(descriptionData.description || '');
-				} else {
-					const errorData = await descriptionResponse.json().catch(() => ({}));
-					console.error('Failed to fetch description:', errorData);
-				}
+				// Get user details (service returns public info including description)
+				const userDetails = await api.users.getUser(profileUsername);
+				setBio(userDetails?.description || '');
 			} catch (err) {
-				console.error('Error fetching user data:', err);
 			} finally {
 				setIsLoading(false);
 			}
@@ -40,24 +32,10 @@ function Bio( {username: profileUsername, canEdit} ) {
 		if (!profileUsername) return;
 		
 		try {
-			const response = await fetch('http://localhost:3001/api/user/description', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
-				body: JSON.stringify({ description: bio })
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.error || 'Failed to update description');
-			}
-
-			const result = await response.json();
-			// Update local state with the saved description
+			const result = await api.users.updateDescription(bio);
 			setBio(result.description || bio);
 			setIsEditingBio(false);
 		} catch (err) {
-			console.error('Error updating description:', err);
 			alert(err.message || 'Failed to save bio');
 		}
 	};

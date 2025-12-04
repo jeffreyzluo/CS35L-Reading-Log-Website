@@ -1,4 +1,5 @@
-// Import Elements
+// Profile page
+// Shows a user's profile including username, bio, friends, and shared posts
 import "./Profile.css";
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -6,7 +7,8 @@ import { AuthContext } from '../../AuthContext';
 import Bio from "./Bio.js";
 import Username from "./Username.js";
 import SharedPosts from "./SharedPosts.js";
-import DisplayFriends from "./displayFriends.js";
+import DisplayFriends from "./DisplayFriends.js";
+import api from '../../services/api';
 
 function Profile() {
   const [profileUser, setProfileUser] = useState({});
@@ -23,20 +25,19 @@ function Profile() {
       return;
     }
 
-    // Fetch logged-in user
-    fetch('/api/me', { credentials: 'include' })
-      .then(res => res.json())
+    // Fetch logged-in user (via service)
+    api.users.getMe()
       .then(data => setLoggedInUser(data))
-      .catch(err => console.error('Failed to fetch logged-in user:', err));
+      .catch(() => {});
 
       setProfileUser({});
 
-    // Fetch profile user
-    const url = paramUsername ? `/api/users/${paramUsername}` : '/api/me';
-    fetch(url, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setProfileUser(data))
-      .catch(err => console.error('Failed to fetch profile:', err));
+    // Fetch profile user (via service)
+    if (paramUsername) {
+      api.users.getUser(paramUsername).then(data => setProfileUser(data)).catch(() => {});
+    } else {
+      api.users.getMe().then(data => setProfileUser(data)).catch(() => {});
+    }
   }, [token, paramUsername, navigate]);
 
   const canEdit = profileUser.username && loggedInUser.username && profileUser.username === loggedInUser.username;
@@ -45,7 +46,7 @@ function Profile() {
     <div
       className="profile-page"
       style={{
-        ['--profile-bg']: `url(${process.env.PUBLIC_URL || ''}/home.jpg)`
+        "--profile-bg": `url(${process.env.PUBLIC_URL || ''}/home.jpg)`
       }}
     >
       <div className="profile-header">

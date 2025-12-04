@@ -1,64 +1,54 @@
 import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 
+// Username display/edit component
+// Props:
+// - initialUsername: current username to display
+// - canEdit: whether the logged-in user can edit this username
 function Username( {username: initialUsername, canEdit} ) {
-	// Username feature state
-	const [username, setUser] = useState(initialUsername || '');
+  // Local editable username state (avoid shadowing prop)
+  const [currentUsername, setCurrentUsername] = useState(initialUsername || '');
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-	// Fetch username on component mount
+
+  // Keep local state in sync with prop changes
   useEffect(() => {
-    setUser(initialUsername || '');
+    setCurrentUsername(initialUsername || '');
   }, [initialUsername]);
 
-	// --- Username Handlers ---
-	const usernameChange = (event) => setUser(event.target.value);
-  
+  // --- Username Handlers ---
+  const handleUsernameChange = (event) => setCurrentUsername(event.target.value);
+
   const handleSaveUsername = async () => {
-    if (!username || username.trim() === '') {
+    if (!currentUsername || currentUsername.trim() === '') {
       alert('Username cannot be empty');
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/user/username', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ newUsername: username.trim() })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update username');
-      }
-
+      await api.users.updateUsername(currentUsername.trim());
       setIsEditingUsername(false);
     } catch (err) {
-      console.error('Error updating username:', err);
       alert(err.message || 'Failed to save username');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleEditingUsername = () => {
-    setIsEditingUsername(!isEditingUsername);
-  };
+  const toggleEditingUsername = () => setIsEditingUsername(!isEditingUsername);
 
-  const usernameSection = isEditingUsername && canEdit? (
+  const usernameSection = isEditingUsername && canEdit ? (
     <div className="username-edit">
       <input
         type="text"
-        value={username}
-        onChange={usernameChange}
+        value={currentUsername}
+        onChange={handleUsernameChange}
         placeholder="Enter your username"
         className="username-input"
       />
-      <button 
-        onClick={handleSaveUsername} 
+      <button
+        onClick={handleSaveUsername}
         className="save-button"
         disabled={isLoading}
       >
@@ -67,7 +57,7 @@ function Username( {username: initialUsername, canEdit} ) {
     </div>
   ) : (
     <div className="username-display">
-      <h2>{username || 'Anonymous User'}</h2>
+      <h2>{currentUsername || 'Anonymous User'}</h2>
       {canEdit && (
         <button onClick={toggleEditingUsername} className="edit-button">
           Edit
@@ -76,9 +66,9 @@ function Username( {username: initialUsername, canEdit} ) {
     </div>
   );
 
-	return (
-		<div className="username-section">{usernameSection}</div>
-	);
+  return (
+    <div className="username-section">{usernameSection}</div>
+  );
 }
 
 export default Username;

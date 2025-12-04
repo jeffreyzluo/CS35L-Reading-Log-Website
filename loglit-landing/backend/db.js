@@ -23,6 +23,13 @@ if (process.env.DATABASE_URL) {
 
 const pool = new Pool(poolConfig);
 
+/**
+ * Run a callback inside a database transaction.
+ * The callback receives a connected `pg` client and may perform queries.
+ * The transaction is committed if the callback resolves, or rolled back on rejection.
+ * @param {(client: import('pg').PoolClient) => Promise<any>} callback
+ * @returns {Promise<any>} The value returned by the callback.
+ */
 async function withTransaction(callback) {
 	const client = await pool.connect();
 	try {
@@ -38,7 +45,11 @@ async function withTransaction(callback) {
 	}
 }
 
-// Get user by email (used for login)
+/**
+ * Retrieve a user row by email.
+ * @param {string} email - Email address to look up.
+ * @returns {Promise<{username:string,email:string,password_hash:string}|null>} User row or null if not found.
+ */
 const getUserByEmail = async (email) => {
 	try {
 		const result = await pool.query(
@@ -51,8 +62,16 @@ const getUserByEmail = async (email) => {
 	}
 };
 
-// Function to add a new user
-const newUser = async (username, email, passwordHash) => {
+/**
+ * Insert a new user row. This is a low-level helper that expects the
+ * caller to provide a pre-hashed password. It performs a basic uniqueness
+ * check and returns the created user row.
+ * @param {string} username
+ * @param {string} email
+ * @param {string} passwordHash
+ * @returns {Promise<{username:string,email:string}>}
+ */
+const insertUserRow = async (username, email, passwordHash) => {
 	try {
 		const userCheck = await pool.query(
 			'SELECT username, email FROM users WHERE username = $1 OR email = $2',
@@ -76,16 +95,5 @@ const newUser = async (username, email, passwordHash) => {
 	}
 };
 
-
-
-// Function to retrieve all books for a user
-const retrieveBooks = async (userId) => {
-	try {
-		const result = await pool.query('SELECT * FROM books WHERE user_id = $1 ORDER BY date_added DESC', [userId]);
-		return result.rows;
-	} catch (error) {
-		throw error;
-	}
-};
-
-export { withTransaction, pool, getUserByEmail, newUser};
+// Export the low-level insert function and keep `newUser` as an alias
+export { withTransaction, pool, getUserByEmail, insertUserRow, insertUserRow as newUser };

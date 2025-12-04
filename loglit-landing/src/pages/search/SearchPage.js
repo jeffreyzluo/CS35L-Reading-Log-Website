@@ -6,39 +6,27 @@ import SearchBar from './SearchBar';
 import './Search.css';
 import '../profile/Profile.css';
 import Post from './Post';
+import api from '../../services/api';
 
 function Search() {
   const [results, setResults] = useState([]);
   const [clearSignal, setClearSignal] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  function handleSearch(query) {
-    console.log("Searching for...", query)
-
-    // Fetch results from backend
-    fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(query)}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        const formattedResults = data.map(item => ({
-          name: item.title,              
-          authors: item.authors,         
-          description: item.description,  
-          thumbnail: item.thumbnail,      
-          volumeId: item.volumeId      
-        }));
-        setResults(formattedResults);
-      })
-      .catch(err => {
-        console.error('Error fetching search results:', err);
-        setResults([]);   // Clear results on error
-      });
-      console.log("Done!")
-
+  async function handleSearch(query) {
+    try {
+      const data = await api.search.searchBooks(query);
+      const formattedResults = Array.isArray(data) ? data.map(item => ({
+        name: item.title,
+        authors: item.authors,
+        description: item.description,
+        thumbnail: item.thumbnail,
+        volumeId: item.volumeId
+      })) : [];
+      setResults(formattedResults);
+    } catch (err) {
+      setResults([]);
+    }
   }
 
   const handleClear = () => {

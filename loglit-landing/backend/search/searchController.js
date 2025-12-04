@@ -1,7 +1,10 @@
 import { fetchBooks } from './searchService.js';
 
+/**
+ * Controller for the search endpoint. Expects a query param `q`.
+ * Delegates to `fetchBooks` and returns the simplified results.
+ */
 export async function searchBooks(req, res, next) {
-  
   try {
     const query = req.query.q;
 

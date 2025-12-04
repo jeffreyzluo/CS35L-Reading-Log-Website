@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
+import api from '../../services/api';
+
+// DisplayFriends
+// Shows followers/following lists and provides an autocomplete to add friends.
 
 function DisplayFriends({ username: profileUsername, canEdit }) {
   const [followers, setFollowers] = useState([]);
@@ -23,29 +27,12 @@ function DisplayFriends({ username: profileUsername, canEdit }) {
   useEffect(() => {
     const fetchFriendsData = async () => {
       try {
-        // Fetch followers list
-        const followersResponse = await fetch(`http://localhost:3001/api/user/${profileUsername}/followers`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-        
-        if (followersResponse.ok) {
-          const followersData = await followersResponse.json();
-          setFollowers(followersData.followers || []);
-        }
+        const followersData = await api.users.getFollowers(profileUsername);
+        setFollowers(followersData.followers || []);
 
-        // Fetch following list
-        const followingResponse = await fetch(`http://localhost:3001/api/user/${profileUsername}/following`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-        
-        if (followingResponse.ok) {
-          const followingData = await followingResponse.json();
-          setFollowing(followingData.following || []);
-        }
+        const followingData = await api.users.getFollowing(profileUsername);
+        setFollowing(followingData.following || []);
       } catch (err) {
-        console.error('Error fetching friends data:', err);
       } finally {
         setIsLoading(false);
       }
@@ -64,23 +51,15 @@ function DisplayFriends({ username: profileUsername, canEdit }) {
       }
 
       try {
-        const response = await fetch(`http://localhost:3001/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Filter out users already being followed and current user
-          const filtered = data.users.filter(user => 
-            user !== searchTerm && 
-            !following.includes(user)
-          );
-          setSuggestions(filtered);
-          setShowSuggestions(filtered.length > 0);
-        }
+        const data = await api.search.searchUsers(searchTerm);
+        // Filter out users already being followed and current user
+        const filtered = (data.users || []).filter(user =>
+          user !== searchTerm &&
+          !following.includes(user)
+        );
+        setSuggestions(filtered);
+        setShowSuggestions(filtered.length > 0);
       } catch (err) {
-        console.error('Error searching users:', err);
       }
     };
 
@@ -99,37 +78,11 @@ function DisplayFriends({ username: profileUsername, canEdit }) {
 
     setIsAddingFriend(true);
     try {
-      const response = await fetch('http://localhost:3001/api/user/friends', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ friendUsername })
-      });
+      await api.users.addFriend(friendUsername);
 
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Non-JSON response:', text);
-        throw new Error('Server returned an invalid response. Please check your backend server.');
-      }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to add friend');
-      }
-
-      // Refresh the following list
-      const followingResponse = await fetch('http://localhost:3001/api/user/following', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (followingResponse.ok) {
-        const followingData = await followingResponse.json();
-        setFollowing(followingData.following || []);
-      }
+      // Refresh the following list for the current profile user
+      const followingData = await api.users.getFollowing(profileUsername);
+      setFollowing(followingData.following || []);
 
       // Clear search
       setSearchTerm('');
@@ -137,7 +90,6 @@ function DisplayFriends({ username: profileUsername, canEdit }) {
       setShowSuggestions(false);
       alert(`Successfully added ${friendUsername} as a friend!`);
     } catch (err) {
-      console.error('Error adding friend:', err);
       alert(err.message || 'Failed to add friend');
     } finally {
       setIsAddingFriend(false);
