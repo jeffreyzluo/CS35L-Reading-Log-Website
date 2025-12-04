@@ -15,7 +15,7 @@ function Profile() {
   const [loggedInUser, setLoggedInUser] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  const { token } = useContext(AuthContext);
+  const { token, signOut } = useContext(AuthContext);
   const { username: paramUsername } = useParams();
 
 
@@ -42,6 +42,21 @@ function Profile() {
 
   const canEdit = profileUser.username && loggedInUser.username && profileUser.username === loggedInUser.username;
 
+  const handleDeleteAccount = async () => {
+    if (!canEdit) return;
+    const ok = window.confirm('Delete your account? This action cannot be undone.');
+    if (!ok) return;
+    try {
+      await api.users.deleteAccount();
+      // Clear client auth state and redirect to login
+      try { signOut(); } catch (e) { /* ignore */ }
+      navigate('/login');
+    } catch (err) {
+      // Show error message
+      window.alert(err.message || 'Failed to delete account');
+    }
+  };
+
   return (
     <div
       className="profile-page"
@@ -51,6 +66,16 @@ function Profile() {
     >
       <div className="profile-header">
         <h1 className="profile-title">My Profile</h1>
+        {canEdit && (
+          <div style={{ marginLeft: 12 }}>
+            <button
+              onClick={handleDeleteAccount}
+              style={{ background: '#d9534f', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}
+            >
+              Delete account
+            </button>
+          </div>
+        )}
       </div>
       <div className="profile-main">
         {/* Main content: username + bio */}
@@ -61,6 +86,8 @@ function Profile() {
 
           {/* Bio Section */}
           <Bio username={profileUser.username} canEdit={canEdit} />
+
+          {/* delete button moved to top-right header */}
 
           {/* Recommendation is available in SharedPosts list below */}
         </div>

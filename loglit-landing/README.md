@@ -21,12 +21,12 @@ This file contains detailed instructions for running the Reading Log app locally
 **Gemini API Key Generation**:
 
 Prerequisites:
-- A [Google AI Studio](https://aistudio.google.com) Account.
+- A [Google AI Studio](https://aistudio.google.com) Account that isn't restricted by your professional organization.
 
 Step 1: Access Google AI Studio
 1. Go to [Google AI Studio](https://aistudio.google.com).
 2. Sign in with your Google account.
-3. Click on the "Get API key" button in the top-left sidebar.
+3. Click on the "Get API key" button in the bottom-left sidebar.
 
 Step 2: Create the Key
 1. Click on the "Create API key" button in the top right.

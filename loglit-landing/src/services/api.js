@@ -67,6 +67,10 @@ const users = {
     credentials: 'include',
     body: JSON.stringify({ newUsername })
   }),
+  deleteAccount: () => fetchJSON('/api/user', {
+    method: 'DELETE',
+    credentials: 'include'
+  }),
   getFollowers: (username) => fetchJSON(`/api/user/${encodeURIComponent(username)}/followers`, { credentials: 'include' }),
   getFollowing: (username) => fetchJSON(`/api/user/${encodeURIComponent(username)}/following`, { credentials: 'include' }),
   addFriend: (friendUsername) => fetchJSON('/api/user/friends', {

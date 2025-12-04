@@ -7,6 +7,7 @@ import api from './services/api';
 import Profile from "./pages/profile/ProfilePage.js";
 import Search from "./pages/search/SearchPage.js";
 import HeroImage from './components/HeroImage';
+import ScrollToTop from './ScrollToTop';
 
 function Header() {
   const navigate = useNavigate();
@@ -92,6 +93,7 @@ function App() {
   return (
     <>
       <Header />
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login onSubmit={handleLogin} />} />
