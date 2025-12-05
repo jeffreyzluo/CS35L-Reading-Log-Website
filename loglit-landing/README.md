@@ -231,13 +231,25 @@ npm run test:e2e -- --debug
  - The book test performs a real `/api/search` call to the backend, which in turn calls Google Books. Ensure `GOOGLE_BOOKS_API_KEY` is set in your `.env` and the backend is started before running this test.
 
 
- ## Database Testing
+## Database Testing with Transaction Rollback
 
- Run the tests in backend/tests to test database operations while using transaction rollbacks to ensure no changes to the actual database.
+This test directory contains test helpers that allow us to write database tests without actually modifying the database. Using the rollback property of transaction, we can write tests without creating a new test database.
 
-1. Run testTransactionUser.test.js
-2. Run testTransactionBook.test.js
+# How Transaction Rollback Works
 
+Each test uses withTestTransaction wrapper, where all database operations in the test will run.
+These database operations will depend on each other and as long as it's happening within the same test, it will run.
+
+At the end of the test, all operations are rolled back, and the transaction doesn't occur. No testing history is stored on the database.
+
+
+How to run tests:
+'''bash
+cd backend/tests
+node --test
+'''
+
+This command runs all test.js files inside backend/tests which include testTransactionBook and testTransactionUser.
 
 
 ## Sequence Diagrams
