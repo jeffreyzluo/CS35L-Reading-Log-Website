@@ -30,7 +30,26 @@ function Header() {
           {token && (
             <button className="signup-button" onClick={handleSignOut}>Sign Out</button>
           )}
-          <button className="profile-button" onClick={() => handleButtonClick('/profile')}>Profile</button>
+          <button
+            className="profile-button"
+            onClick={async () => {
+              // If logged in, resolve the current user's username and navigate to their profile
+              if (token) {
+                try {
+                  const me = await api.users.getMe();
+                  if (me && me.username) {
+                    navigate(`/profile/${encodeURIComponent(me.username)}`);
+                    return;
+                  }
+                } catch (e) {
+                  // fall through to generic profile route
+                }
+              }
+              navigate('/profile');
+            }}
+          >
+            Profile
+          </button>
           <button className="search-button" onClick={() => handleButtonClick('/search')}>Search</button>
         </nav>
       </div>

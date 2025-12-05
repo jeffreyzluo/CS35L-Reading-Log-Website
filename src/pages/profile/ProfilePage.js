@@ -17,6 +17,15 @@ function Profile() {
   const navigate = useNavigate();
   const { token, signOut } = useContext(AuthContext);
   const { username: paramUsername } = useParams();
+  
+  // Handler when username is updated in child component
+  const handleUsernameUpdated = (newUsername) => {
+    // update profile and logged-in user state so UI reflects new name
+    setProfileUser(prev => ({ ...prev, username: newUsername }));
+    setLoggedInUser(prev => ({ ...prev, username: newUsername }));
+    // navigate to the new profile URL so useParams updates
+    navigate(`/profile/${encodeURIComponent(newUsername)}`);
+  };
 
 
   useEffect(() => {
@@ -82,7 +91,7 @@ function Profile() {
         <div className="profile-content" style={{ width: '100%' }}>
 
           {/* Username section */}
-          <Username username={profileUser.username} canEdit={canEdit} />
+          <Username username={profileUser.username} canEdit={canEdit} onUsernameUpdated={handleUsernameUpdated} />
 
           {/* Bio Section */}
           <Bio username={profileUser.username} canEdit={canEdit} />

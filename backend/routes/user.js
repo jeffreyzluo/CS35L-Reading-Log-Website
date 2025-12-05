@@ -1,4 +1,5 @@
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import authMiddleware from '../middleware/auth.js';
 import { updateDescription, updateUsername, getUserDetails, getFollowers, getFollowing, addFriend, deleteUser } from '../user.js';
 
@@ -13,7 +14,25 @@ router.put('/username', authMiddleware, async (req, res) => {
     const username = req.user.username;
     const { newUsername } = req.body;
     const result = await updateUsername(username, newUsername);
-    res.status(200).json(result);
+    // Create a new JWT so the authenticated identity matches the updated username
+    try {
+      const updated = await getUserDetails(result.username);
+      const JWT_SECRET = process.env.JWT_SECRET;
+      const tokenPayload = { username: updated.username, email: updated.email };
+      const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 1000,
+      };
+      res.cookie('jwt', token, cookieOptions);
+      // Return the updated user and the new token (client may store token in localStorage if it uses that)
+      res.status(200).json({ user: result, token });
+    } catch (err) {
+      // If creating token or fetching updated user fails, still return success for username update
+      res.status(200).json(result);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
