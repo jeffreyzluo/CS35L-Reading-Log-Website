@@ -2,7 +2,7 @@
 
 Quick start
 
-This repository contains the main website in the `loglit-landing` folder. To run the project locally:
+This repository contains the main website in the `loglit-landing` folder. To run the project locally and see the main README.md:
 
 1. Enter the main website folder:
 
