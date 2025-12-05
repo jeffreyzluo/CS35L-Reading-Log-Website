@@ -73,5 +73,13 @@ test.describe('Books E2E: add (review) -> remove', () => {
 
     // Verify the post is removed from the list
     await expect(page.locator('li.postItem', { hasText: reviewText })).toHaveCount(0);
+
+    // Clean up: delete the test user account (accept confirm dialog)
+    page.once('dialog', async (dialog) => { await dialog.accept(); });
+    await Promise.all([
+      page.waitForURL('**/login'),
+      page.getByRole('button', { name: 'Delete account', exact: true }).click()
+    ]);
+    await expect(page).toHaveURL(/.*\/login$/);
   });
 });

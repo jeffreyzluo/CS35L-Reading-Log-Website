@@ -113,6 +113,14 @@ E2E Tests Included
 	- Submits a review (rating + text) from the Search results UI
 	- Verifies the review appears in the user's `SharedPosts` on their profile
 	- Deletes the review and verifies it is removed
+	- Cleans up test account by deleting the user
+
+- `tests/e2e/friends.spec.mjs` — Friends / follow flow:
+	- Creates two unique users through the UI (user A and user B)
+	- Signs in as user A and adds user B by username using the "Find friend via username" input and "Add Friend" button
+	- Verifies user B appears in A's `Following` list
+	- Signs in as user B and adds user A back, verifying A appears in B's `Following` list
+	- Cleans up both test accounts by deleting each user
 
 How to run specific tests
 - Run all E2E tests (default config):
@@ -129,6 +137,10 @@ npm run test:e2e -- tests/e2e/book.spec.mjs
 or
 ```bash
 npm run test:e2e -- tests/e2e/auth.spec.mjs
+```
+or
+```bash
+npm run test:e2e -- tests/e2e/friends.spec.mjs
 ```
 
 Debugging & Slower Visual Runs
