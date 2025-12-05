@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Books E2E: add (review) -> remove', () => {
   test('search, review (add book), then remove review', async ({ page }) => {
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
     const username = `e2euser${id}`;
     const email = `${username}@example.com`;
     const password = 'Password1';
@@ -14,7 +14,7 @@ test.describe('Books E2E: add (review) -> remove', () => {
     await page.fill('#email', email);
     await page.fill('#password', password);
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Sign Up', exact: true }).click()
     ]);
 
@@ -54,7 +54,7 @@ test.describe('Books E2E: add (review) -> remove', () => {
 
     // Go to profile and verify the book (by its review text) appears in SharedPosts
     await page.getByRole('button', { name: 'Profile', exact: true }).click();
-    await page.waitForURL('**/profile');
+    await page.waitForURL(/.*\/profile(\/.*)?$/);
 
     // The UI enriches book titles via Google Books; for fake volume IDs the title
     // may be "Unknown title". The review text is a reliable indicator the post exists.

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Auth E2E: sign up, sign out, sign in, delete account', () => {
   test('signup -> signout -> signin -> delete account', async ({ page }) => {
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
     const username = `e2euser${id}`;
     const email = `${username}@example.com`;
     const password = 'Password1';
@@ -20,7 +20,7 @@ test.describe('Auth E2E: sign up, sign out, sign in, delete account', () => {
 
     // Submit sign up (scope to form to avoid matching header button)
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Sign Up', exact: true }).click()
     ]);
 
@@ -36,7 +36,7 @@ test.describe('Auth E2E: sign up, sign out, sign in, delete account', () => {
     await page.fill('#email', email);
     await page.fill('#password', password);
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Login', exact: true }).click()
     ]);
     await expect(page.getByText('My Profile')).toBeVisible();

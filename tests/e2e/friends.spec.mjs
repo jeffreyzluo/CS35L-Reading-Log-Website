@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Friends E2E: create two users and add each other', () => {
   test('create two accounts then add each other by username', async ({ page }) => {
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
     const userA = `e2euserA${id}`;
     const emailA = `${userA}@example.com`;
     const userB = `e2euserB${id}`;
@@ -16,7 +16,7 @@ test.describe('Friends E2E: create two users and add each other', () => {
     await page.fill('#email', emailA);
     await page.fill('#password', password);
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Sign Up', exact: true }).click()
     ]);
     await expect(page.getByText('My Profile')).toBeVisible();
@@ -31,7 +31,7 @@ test.describe('Friends E2E: create two users and add each other', () => {
     await page.fill('#email', emailB);
     await page.fill('#password', password);
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Sign Up', exact: true }).click()
     ]);
     await expect(page.getByText('My Profile')).toBeVisible();
@@ -44,7 +44,7 @@ test.describe('Friends E2E: create two users and add each other', () => {
     await page.fill('#email', emailA);
     await page.fill('#password', password);
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Login', exact: true }).click()
     ]);
     await expect(page.getByText('My Profile')).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('Friends E2E: create two users and add each other', () => {
     await page.fill('#email', emailB);
     await page.fill('#password', password);
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Login', exact: true }).click()
     ]);
     await expect(page.getByText('My Profile')).toBeVisible();
@@ -87,7 +87,7 @@ test.describe('Friends E2E: create two users and add each other', () => {
     await page.fill('#email', emailA);
     await page.fill('#password', password);
     await Promise.all([
-      page.waitForURL('**/profile'),
+      page.waitForURL(/.*\/profile(\/.*)?$/),
       page.locator('form').getByRole('button', { name: 'Login', exact: true }).click()
     ]);
     await expect(page.getByText('My Profile')).toBeVisible();
