@@ -150,5 +150,3 @@ test('Test user profile operations: update description and username', async () =
 		assert(newDetails.description === 'I love reading!', 'Description preserved after username change');
 	});
 });
-
-

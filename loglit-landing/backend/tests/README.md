@@ -9,3 +9,7 @@ These database operations will depend on each other and as long as it's happenin
 
 At the end of the test, all operations are rolled back, and the transaction doesn't occur. No testing history is stored on the database.
 
+
+How to run tests:
+node testTransactionUser.test.js
+

@@ -5,9 +5,9 @@
 
 import {Pool} from 'pg';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
+// Prefer a single DATABASE_URL when available
 const poolConfig = {};
 if (process.env.DATABASE_URL) {
 	poolConfig.connectionString = process.env.DATABASE_URL;
@@ -15,10 +15,10 @@ if (process.env.DATABASE_URL) {
 		poolConfig.ssl = { rejectUnauthorized: false };
 	}
 } else {
-	poolConfig.user =  'postgres';
-	poolConfig.host = 'localhost';
+	poolConfig.user = process.env.PGUSER || 'postgres';
+	poolConfig.host = process.env.PGHOST || 'localhost';
 	poolConfig.database = process.env.PGDATABASE || 'readinglog';
-	poolConfig.password = '';
+	poolConfig.password = process.env.PGPASSWORD || 'postgres';
 	poolConfig.port = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
 }
 
