@@ -2,13 +2,9 @@
 
 # dependencies
 node_modules/
-genai_notes.txt
 
 /.pnp
 .pnp.js
-/package.json
-/package-lock.json
-genai_no
 # testing
 /coverage
 
