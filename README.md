@@ -277,13 +277,16 @@ At the end of the test, all operations are rolled back, and the transaction does
 
 
 How to run tests:
-'''bash
+
+```bash
 cd backend/tests
 node --test
-'''
+```
 
 This command runs all test.js files inside backend/tests which include testTransactionBook and testTransactionUser.
-IMPORTANT NOTE: Make sure that the .env file is in loglit-landing folder, or else testTransaction.js can't find the environmental variables needed to run the tests.
+IMPORTANT NOTE(S):
+1. Existing database shouldn't include the following usernames or tests won't work: alice, bob, charlie, user1
+2. Make sure that the .env file is in loglit-landing folder, or else testTransaction.js can't find the environmental variables needed to run the tests.
 
 ## Sequence Diagrams
 
