@@ -41,6 +41,14 @@ export async function newUser(username, email, password, tx = withTransaction) {
         // Hash the password before inserting
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(password, saltRounds);
+        
+        const emailCheck = await client.query(
+            user_queries.emailExists,
+            [email]
+        );
+        if (emailCheck.rowCount !== 0) {
+            throw new Error('Email already exists');
+        }
 
         try {
             // Insert user (let database constraints handle uniqueness)
@@ -48,7 +56,6 @@ export async function newUser(username, email, password, tx = withTransaction) {
                 user_queries.newUser,
                 [username, email, passwordHash]
             );
-
             return result.rows[0];
 
         } catch (error) {
@@ -142,10 +149,7 @@ export async function deleteUser(username, tx = withTransaction) {
         requireNonEmptyString(username, 'username');
         const result = await client.query(user_queries.deleteUser, [username]);
 
-        if (result.rowCount === 0) {
-            throw new Error('User not found');
-        }
-        return { username, deleted: true };
+        return { username, deleted: result.rowCount > 0 };
     });
 }
 
@@ -167,7 +171,7 @@ export async function getUserDetails (username, tx = withTransaction) {
 
 /**
  * Add a friendship (user follows friend).
- * @param {string} userUsername - The follower's username.
+ * @param {string} usergetUserUsername - The follower's username.
  * @param {string} friendUsername - The followed user's username.
  * @returns {Promise<Object>} Inserted friendship row.
  */

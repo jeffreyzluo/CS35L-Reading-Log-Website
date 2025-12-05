@@ -5,9 +5,13 @@ export const user_queries = {
     RETURNING username, date_joined
     `,
     userExists: //Parameter: username
-    `'SELECT username
+    `SELECT username
     FROM users
     WHERE username = $1`,
+    emailExists:
+    `SELECT *
+    FROM users
+    WHERE email = $1`,
     
     deleteUser: //Parameters: username
     `DELETE FROM users
