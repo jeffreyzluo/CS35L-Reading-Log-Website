@@ -136,13 +136,14 @@ What .env file should have:
 ```bash
 PGHOST=localhost
 PGUSER=postgres
-PGPASSWORD=postgres
 PGDATABASE=readinglog
 PGPORT=5432
+PGPASSWORD=postgres
 JWT_SECRET=12345
-
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/readinglog
-DB_SSL=false
+GEMINI_API_KEY=GEMINI_API_KEY
+GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID
+REACT_APP_GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID
+GOOGLE_BOOKS_API_KEY=GOOGLE_BOOKS_API_KEY
 ```
 
 ## Playwright End-to-End Tests
@@ -230,6 +231,33 @@ npm run test:e2e -- --debug
 
  - The book test performs a real `/api/search` call to the backend, which in turn calls Google Books. Ensure `GOOGLE_BOOKS_API_KEY` is set in your `.env` and the backend is started before running this test.
 
+
+## Cucumber (BDD) Feature Tests
+
+Run the backend feature tests written in Gherkin/Cucumber (features are in `backend/features`). These tests import `backend/app.js` directly and run database operations inside transactions, so you do not need to start the backend server separately in most cases.
+
+Prerequisites:
+
+- Install dependencies: `npm install`
+- Ensure PostgreSQL is running and your `.env` in the project root contains the DB settings (`PGHOST`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `PGPORT`).
+
+Run all Cucumber feature tests:
+
+```bash
+npm run test:cucumber
+```
+
+Run a single feature file:
+
+```bash
+npm run test:cucumber -- backend/features/auth.feature
+```
+
+Notes:
+
+- The repository includes a `test:cucumber` script in `package.json` that runs `cucumber-js backend/features`.
+- If a step imports `app.js` directly the tests will run the Express app in-process; you don't need to run `npm run backend` first. If you prefer to run the server separately, start it with `npm run backend` and ensure `.env` and DB are configured.
+- If tests fail due to DB connectivity, verify your `.env` and that PostgreSQL is accessible.
 
 ## Database Testing with Transaction Rollback
 
