@@ -50,7 +50,7 @@ router.post('/', authMiddleware, async (req, res) => {
     const MODEL = 'gemini-2.5-flash';
     if (!API_KEY) return res.status(500).json({ error: 'Missing GEMINI_API_KEY on server' });
 
-    const promptText = `You are a helpful book recommender. Given the following book titles a user has read: ${truncated}. Please recommend exactly one book title the user is likely to enjoy next. Return only the book title, no explanation.`;
+    const promptText = `You are a helpful book recommender. Given the following book titles a user has read: ${truncated}. Please recommend exactly one book title the user is likely to enjoy next. Return only the book title and author, no explanation.`;
 
     const ai = new GoogleGenAI({});
     const resp = await ai.models.generateContent({ model: MODEL, contents: promptText });
