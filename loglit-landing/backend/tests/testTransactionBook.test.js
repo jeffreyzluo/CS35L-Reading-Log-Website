@@ -17,8 +17,8 @@ test('Test adding, updating and deleting books', async () => {
         assert.strictEqual(user.username, 'user1', 'User created with correct username');
 
         // 2️⃣ Add two books
-        let book1 = await addBookToUser('user1', '0001', 5, 'I love this book!', 'Completed', Date.now(), tx);
-        let book2 = await addBookToUser('user1', '0002', 4, 'This one was okay.', 'Completed', Date.now(), tx);
+        let book1 = await addBookToUser('user1', '0001', 5, 'I love this book!', 'Completed', new Date(), tx);
+        let book2 = await addBookToUser('user1', '0002', 4, 'This one was okay.', 'Completed', new Date(), tx);
 
         // 3️⃣ Retrieve books and assert they exist
         let books = await retrieveBook('user1', tx);
@@ -39,7 +39,7 @@ test('Test adding, updating and deleting books', async () => {
         assert.strictEqual(b2.status, 'Completed');
 
         // 6️⃣ Update second book
-        await addBookToUser('user1', '0002', 5, 'Actually better than I thought', 'Completed', Date.now(), tx);
+        await addBookToUser('user1', '0002', 5, 'Actually better than I thought', 'Completed', new Date(), tx);
 
         // 7️⃣ Retrieve again and check updated book
         let updatedBooks = await retrieveBook('user1', tx);
@@ -59,16 +59,20 @@ test('Test adding, updating and deleting books', async () => {
 test("Retrieving books via different methods", async () => {
     await withTestTransaction(async (client) => {
 		const tx = createTestTxWrapper(client);
+
+        // 1️⃣ Create a user
+        let user = await newUser('user1', 'user1@gmail.com', 'password123', tx);
+        assert.strictEqual(user.username, 'user1', 'User created with correct username');
         
-        let book1 = await addBookToUser('user1', '0001', 5, 'I love this book!', "Completed", Date.now(), tx);
+        let book1 = await addBookToUser('user1', '0001', 5, 'I love this book!', "Completed", new Date(), tx);
         let books1 = await retrieveBook('user1', tx);
         assert.strictEqual(books1.length, 1);
 
-        let book2 = await addBookToUser('user1', '0002', 4, 'This one was okay.', 'Completed', Date.now(), tx);
+        let book2 = await addBookToUser('user1', '0002', 4, 'This one was okay.', 'Completed', new Date(), tx);
         let books2 = await retrieveBook('user1', tx);
         assert.strictEqual(books2.length, 2);
         
-        let book3 = await addBookToUser('user1', '0003', 3, 'Not that good. Plot was boring.', 'Completed', Date.now(), tx);
+        let book3 = await addBookToUser('user1', '0003', 3, 'Not that good. Plot was boring.', 'Completed', new Date(), tx);
         let books3 = await retrieveBook('user1', tx);
         assert.strictEqual(books3.length, 3);
     });

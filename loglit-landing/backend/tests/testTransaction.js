@@ -15,10 +15,10 @@ if (process.env.DATABASE_URL) {
 		poolConfig.ssl = { rejectUnauthorized: false };
 	}
 } else {
-	poolConfig.user = process.env.PGUSER || 'postgres';
+	poolConfig.user = process.env.PGUSER || undefined;
 	poolConfig.host = process.env.PGHOST || 'localhost';
 	poolConfig.database = process.env.PGDATABASE || 'readinglog';
-	poolConfig.password = process.env.PGPASSWORD || 'postgres';
+	poolConfig.password = process.env.PGPASSWORD || undefined;
 	poolConfig.port = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
 }
 

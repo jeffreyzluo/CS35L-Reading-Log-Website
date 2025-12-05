@@ -53,13 +53,12 @@ test('Test adding a user and rejecting duplicates', async () => {
 		}
 
 		//Test 4: Try to delete a user
-		const deleteResult = await deleteUser('user1');
+		const deleteResult = await deleteUser('user1', tx);
 		assert(deleteResult.deleted === true, 'Delete returns success');
-
 
 		//Test 5: Try to delete a non-existent user
 		try {
-			const deleteResult = await deleteUser('user1');
+			const deleteResult = await deleteUser('user1', tx);
 			assert(deleteResult.deleted === false, 'Delete should be invalid, user does not exist');
 			const deletedCheck = await client.query(
 				'SELECT * FROM users WHERE username = $1',

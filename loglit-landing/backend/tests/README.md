@@ -1,6 +1,6 @@
 #Database Testing with Transaction Rollback
 
-This test dieectory contains test helpers that allow us to write database tests without actually modifying the database. Using the rollback property of transaction, we can write tests without creating a new test database.
+This test directory contains test helpers that allow us to write database tests without actually modifying the database. Using the rollback property of transaction, we can write tests without creating a new test database.
 
 #How Transaction Rollback Works
 
@@ -11,5 +11,6 @@ At the end of the test, all operations are rolled back, and the transaction does
 
 
 How to run tests:
+cd backend/tests
 node testTransactionUser.test.js
 
