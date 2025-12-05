@@ -8,18 +8,11 @@ dotenv.config();
 
 // Prefer a single DATABASE_URL when available
 const poolConfig = {};
-if (process.env.DATABASE_URL) {
-	poolConfig.connectionString = process.env.DATABASE_URL;
-	if (process.env.DB_SSL === 'true') {
-		poolConfig.ssl = { rejectUnauthorized: false };
-	}
-} else {
-	poolConfig.user = process.env.PGUSER || undefined;
-	poolConfig.host = process.env.PGHOST || 'localhost';
-	poolConfig.database = process.env.PGDATABASE || 'readinglog';
-	poolConfig.password = process.env.PGPASSWORD || undefined;
-	poolConfig.port = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
-}
+poolConfig.user = process.env.PGUSER || undefined;
+poolConfig.host = process.env.PGHOST || 'localhost';
+poolConfig.database = process.env.PGDATABASE || 'readinglog';
+poolConfig.password = process.env.PGPASSWORD || undefined;
+poolConfig.port = process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432;
 
 const pool = new Pool(poolConfig);
 
