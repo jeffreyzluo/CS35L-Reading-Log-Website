@@ -5,11 +5,11 @@
 
 import {Pool} from 'pg';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({path: "../../.env"});
 
 // Prefer a single DATABASE_URL when available
 const poolConfig = {};
-poolConfig.user = process.env.PGUSER
+poolConfig.user = process.env.PGUSER || undefined;
 poolConfig.host = process.env.PGHOST || 'localhost';
 poolConfig.database = process.env.PGDATABASE || 'readinglog';
 poolConfig.password = process.env.PGPASSWORD || undefined;

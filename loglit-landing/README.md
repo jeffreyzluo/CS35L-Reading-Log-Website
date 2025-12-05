@@ -250,7 +250,7 @@ node --test
 '''
 
 This command runs all test.js files inside backend/tests which include testTransactionBook and testTransactionUser.
-
+IMPORTANT NOTE: Make sure that the .env file is in loglit-landing folder, or else testTransaction.js can't find the environmental variables needed to run the tests.
 
 ## Sequence Diagrams
 
