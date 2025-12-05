@@ -61,7 +61,7 @@ IMPORTANT NOTE(S):
 1. Remember to replace PGPASSWORD with your actual password, and update DATABASE_URL
 2. DATABASE_URL follows this format: postgresql://{PGUSER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{PGDATABASE}
 
-##Running the App
+## Running the App
 
 After setting up the postgreSQL database, follow the instructions below:
 1. Install dependencies: `npm install`
