@@ -31,6 +31,10 @@ function requireNonEmptyString(value, name) {
  * @returns {Promise<{username:string, date_joined:Date}>} Inserted user info.
  * @throws {Error} If required parameters are missing or uniqueness violations occur.
  */
+
+/* GEN AI PROMPT for boilerplate code of newUser function: Given databases.txt as context, create a database function that allows us to create a new user.
+Make sure to check for duplicate email, since username is already covered in the database specification, and include error handling.
+*/
 export async function newUser(username, email, password, tx = withTransaction) {
     return tx(async (client) => {
         // Basic validation

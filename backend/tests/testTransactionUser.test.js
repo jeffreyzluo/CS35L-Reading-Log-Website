@@ -9,6 +9,11 @@ import {newUser, deleteUser, updateDescription, updateUsername, getUserDetails, 
 import { addBookToUser, retrieveBook, deleteUserBook } from '../book_user.js';
 import { pool } from './testTransaction.js';
 
+/* Initial AI prompt to generate initial version of the code boilerplate template:
+	Given user.js and testTransaction.js files, write a test file testTransactionUser.test.js that uses withTestTransaction to test user-related database operations.
+	Make sure that your tests test all operations in user.js. Using the logic in testTransaction.js, make sure that all tests include transaction rollback and don't actually modify the database.
+*/
+
 test('Test adding a user and rejecting duplicates', async () => {
 	await withTestTransaction(async (client) => {
 		// Create a transaction wrapper that uses the same client for all operations
@@ -115,8 +120,8 @@ test('Test multiple related operations: create users, add friend, check follower
 		const bobFollowersAfter = await getFollowers('bob', tx);
 		assert(bobFollowersAfter.length === 0, 'Bob has no followers after removal');
 		
-		// All these operations happened in the same transaction!
-		// They can see each other's changes, but everything rolls back at the end.
+		//The good thing about the test is that with testTransaction, all these operations happened in the same transaction.
+		// Each transaction can basically see each other's changes, but everything rolls back at the end.
 	});
 });
 

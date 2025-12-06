@@ -7,6 +7,12 @@ import {newUser, deleteUser, updateDescription, updateUsername, getUserDetails, 
 import { addBookToUser, retrieveBook, deleteUserBook } from '../book_user.js';
 import { pool } from './testTransaction.js';
 
+
+/* AI prompt to generate first version of the first test function (Edits were made on top of this):
+	Given book.js and testTransaction.js files, write a test file testTransactionUser.test.js that uses withTestTransaction to test user-related database operations.
+	Make sure that your tests test all functions in book.js. Using the logic in testTransaction.js, make sure that all tests include transaction rollback and don't actually modify the database.
+*/
+
 test('Test adding, updating and deleting books', async () => {
     await withTestTransaction(async (client) => {
         // Transaction wrapper

@@ -14,6 +14,11 @@ import {book_queries} from './queries.js';
 //Note: For all functions, we have a transaction wrapper for ACID management and testing purposes.
 //withTransaction wrapper will be used as default, and withTestTransaction can be passed in for testing database oeprations.
 
+/* GENAI PROMPT for generating initial addBookToUser function:
+    Given book.js and databases.txt for the structure of the database, can you code a database function that allows us to add a book to a user's book list?
+
+*/
+
 export async function addBookToUser(username, bookId, rating, review, status, added_at, tx = withTransaction) {
     return tx(async (client) => {
         const checkExisting = await client.query(
