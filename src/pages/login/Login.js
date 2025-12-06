@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import './Login.css';
+// GENAI_PROMPT: Create basic Homepage and Login component
+// - Context: The project needs a minimal, accessible Homepage and a simplified Login component
+//   that integrates with existing `AuthContext` and routing. Keep styles minimal and reusable.
+// - Deliverable: Two React components (Homepage, Login) with simple markup, form state management,
+//   basic validation, and clear CSS class names. Provide short usage notes and any required route
+//   additions for `react-router-dom`.
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../AuthContext';
 import api from '../../services/api';

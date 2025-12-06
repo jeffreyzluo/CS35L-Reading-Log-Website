@@ -9,6 +9,14 @@
   padding-right: 1rem;
 }
 
+/*
+  GENAI_PROMPT: Debug/Adjust search page background
+  - Context: The search page uses an animated tiled background via `var(--search-bg)` on a ::before layer.
+    The visual effect should sit behind content without interfering with layout or focusable elements.
+  - Request: Ensure the background is correctly positioned and layered (z-index/-1 or -2), and advise
+    on background-size for responsiveness. If the background sometimes overflows or appears in front
+    of content, point to likely causes (stacking contexts, position, transform, or z-index) and suggest fixes.
+*/
 /* Animated blurred background layer using the provided image (tiles and scrolls) */
 .search-page::before {
   content: "";

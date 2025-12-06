@@ -1,3 +1,12 @@
+/*
+  GENAI_PROMPT: Adjust CSS for alignment
+  - Context: This component is the full-page hero used on the homepage. Please adjust CSS so
+    that content aligns consistently with other pages (profile/search). Focus on container
+    width, padding, centering behavior, and responsive breakpoints. Ensure the background
+    sits behind content (use layering/z-index) and does not block interactive elements.
+  - Deliverable: Small, conservative CSS tweaks (padding, max-width, box-sizing, background-position)
+    plus a short explanation of any layout trade-offs.
+*/
 /* Full-page hero background using library.jpg and centered white content box */
 .hero-image {
   --bg: var(--hero-bg);

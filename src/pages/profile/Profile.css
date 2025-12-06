@@ -114,6 +114,15 @@
   padding: 0 0.5rem;
 }
 
+/*
+  GENAI_PROMPT: Debug background-image visual bug
+  - Context: The profile page uses a pseudo-element with `background-image: var(--profile-bg)`.
+    Sometimes the image isn't appearing as a background (content overlaps, or image appears in DOM)
+  - Request: Help debug why the background image is not correctly rendering behind content. Check
+    background-size/position, stacking context, z-index, transform usage, and any element that
+    might create a new stacking context. Suggest code changes (CSS or minimal JS) to ensure the
+    image stays behind all content and scales responsively.
+*/
 /* Blurred background image for the profile page (uses public/home.jpg) */
 .profile-page {
   position: relative;
